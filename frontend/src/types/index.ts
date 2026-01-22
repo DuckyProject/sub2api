@@ -453,7 +453,7 @@ export interface Account {
   platform: AccountPlatform
   type: AccountType
   credentials?: Record<string, unknown>
-  extra?: CodexUsageSnapshot & Record<string, unknown> // Extra fields including Codex usage
+  extra?: CodexUsageSnapshot & ProviderUsageSnapshotExtra & Record<string, unknown> // Extra fields including Codex usage
   proxy_id: number | null
   concurrency: number
   current_concurrency?: number // Real-time concurrency count from Redis
@@ -541,6 +541,19 @@ export interface AccountUsageInfo {
   antigravity_quota?: Record<string, AntigravityModelQuota> | null
 }
 
+// Provider usage snapshot cache persisted in Account.extra (backend writes snapshots after gateway/test/probe).
+export interface ProviderUsageSnapshotExtra {
+  // Anthropic (Claude OAuth/Setup-Token)
+  claude_usage_snapshot?: AccountUsageInfo
+  claude_usage_updated_at?: string
+  claude_usage_source?: string
+
+  // Gemini (local simulated quota)
+  gemini_usage_snapshot?: AccountUsageInfo
+  gemini_usage_updated_at?: string
+  gemini_usage_source?: string
+}
+
 // OpenAI Codex usage snapshot (from response headers)
 export interface CodexUsageSnapshot {
   // Legacy fields (kept for backwards compatibility)
@@ -557,9 +570,11 @@ export interface CodexUsageSnapshot {
   codex_5h_used_percent?: number // 5-hour window usage percentage
   codex_5h_reset_after_seconds?: number // Seconds until 5h window reset
   codex_5h_window_minutes?: number // 5h window in minutes (should be ~300)
+  codex_5h_reset_at?: string // Absolute reset time (RFC3339/ISO8601)
   codex_7d_used_percent?: number // 7-day window usage percentage
   codex_7d_reset_after_seconds?: number // Seconds until 7d window reset
   codex_7d_window_minutes?: number // 7d window in minutes (should be ~10080)
+  codex_7d_reset_at?: string // Absolute reset time (RFC3339/ISO8601)
 
   codex_usage_updated_at?: string // Last update timestamp
 }

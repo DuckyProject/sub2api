@@ -58,6 +58,7 @@ type Config struct {
 	UsageCleanup UsageCleanupConfig         `mapstructure:"usage_cleanup"`
 	Concurrency  ConcurrencyConfig          `mapstructure:"concurrency"`
 	TokenRefresh TokenRefreshConfig         `mapstructure:"token_refresh"`
+	OAuthProbe   OAuthProbeConfig           `mapstructure:"oauth_probe"`
 	RunMode      string                     `mapstructure:"run_mode" yaml:"run_mode"`
 	Timezone     string                     `mapstructure:"timezone"` // e.g. "Asia/Shanghai", "UTC"
 	Gemini       GeminiConfig               `mapstructure:"gemini"`
@@ -125,6 +126,24 @@ type TokenRefreshConfig struct {
 	MaxRetries int `mapstructure:"max_retries"`
 	// 重试退避基础时间（秒）
 	RetryBackoffSeconds int `mapstructure:"retry_backoff_seconds"`
+}
+
+// OAuthProbeConfig OAuth2 账号探活/配额同步配置
+// 通过“测试连接”式的最小请求，定期更新 OAuth 账号可用性与配额信息（OpenAI/Gemini/Claude）。
+type OAuthProbeConfig struct {
+	// 是否启用探活任务（默认关闭，避免对配额产生额外消耗）
+	Enabled bool `mapstructure:"enabled"`
+	// 检查间隔（分钟）
+	CheckIntervalMinutes int `mapstructure:"check_interval_minutes"`
+	// 闲置阈值（分钟）：仅当账号在该时长内未被使用，才会触发探活（兜底机制）。
+	// <=0 表示不按闲置过滤（每轮都会探活符合条件的账号）。
+	IdleThresholdMinutes int `mapstructure:"idle_threshold_minutes"`
+	// 单次请求超时（秒）
+	RequestTimeoutSeconds int `mapstructure:"request_timeout_seconds"`
+	// 并发探活数（>0）
+	MaxConcurrency int `mapstructure:"max_concurrency"`
+	// 每轮最多探活账号数（<=0 表示不限制）
+	MaxAccountsPerCycle int `mapstructure:"max_accounts_per_cycle"`
 }
 
 type PricingConfig struct {
@@ -861,6 +880,14 @@ func setDefaults() {
 	viper.SetDefault("token_refresh.refresh_before_expiry_hours", 0.5) // 提前30分钟刷新（适配Google 1小时token）
 	viper.SetDefault("token_refresh.max_retries", 3)                   // 最多重试3次
 	viper.SetDefault("token_refresh.retry_backoff_seconds", 2)         // 重试退避基础2秒
+
+	// OAuthProbe (disabled by default to avoid extra quota consumption)
+	viper.SetDefault("oauth_probe.enabled", false)
+	viper.SetDefault("oauth_probe.check_interval_minutes", 15)
+	viper.SetDefault("oauth_probe.idle_threshold_minutes", 15)
+	viper.SetDefault("oauth_probe.request_timeout_seconds", 20)
+	viper.SetDefault("oauth_probe.max_concurrency", 2)
+	viper.SetDefault("oauth_probe.max_accounts_per_cycle", 0)
 
 	// Gemini OAuth - configure via environment variables or config file
 	// GEMINI_OAUTH_CLIENT_ID and GEMINI_OAUTH_CLIENT_SECRET

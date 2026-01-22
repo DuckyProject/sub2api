@@ -51,6 +51,21 @@ func ProvideTokenRefreshService(
 	return svc
 }
 
+// ProvideOAuthProbeService creates and starts OAuthProbeService.
+func ProvideOAuthProbeService(
+	accountRepo AccountRepository,
+	httpUpstream HTTPUpstream,
+	openAITokenProvider *OpenAITokenProvider,
+	geminiTokenProvider *GeminiTokenProvider,
+	claudeTokenProvider *ClaudeTokenProvider,
+	accountUsageService *AccountUsageService,
+	cfg *config.Config,
+) *OAuthProbeService {
+	svc := NewOAuthProbeService(accountRepo, httpUpstream, openAITokenProvider, geminiTokenProvider, claudeTokenProvider, accountUsageService, cfg)
+	svc.Start()
+	return svc
+}
+
 // ProvideDashboardAggregationService 创建并启动仪表盘聚合服务
 func ProvideDashboardAggregationService(repo DashboardAggregationRepository, timingWheel *TimingWheelService, cfg *config.Config) *DashboardAggregationService {
 	svc := NewDashboardAggregationService(repo, timingWheel, cfg)
@@ -255,6 +270,7 @@ var ProviderSet = wire.NewSet(
 	NewCRSSyncService,
 	ProvideUpdateService,
 	ProvideTokenRefreshService,
+	ProvideOAuthProbeService,
 	ProvideAccountExpiryService,
 	ProvideTimingWheelService,
 	ProvideDashboardAggregationService,

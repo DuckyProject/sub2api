@@ -525,3 +525,37 @@ gemini:
         # Cooldown time (minutes) after hitting quota
         # 达到配额后的冷却时间（分钟）
         cooldown_minutes: 5
+
+# =============================================================================
+# OAuth Probe (Optional)
+# OAuth2 探活/配额同步（可选）
+# =============================================================================
+# Periodically sends "test connection" style requests to OAuth/Setup-Token accounts to:
+# 定期对 OAuth/Setup-Token 账号执行“测试连接”式请求，用于：
+# - Sync quota/usage even when the account is not scheduled
+# - 在账号未被调度时同步用量/限额信息
+# - Refresh OpenAI OAuth Codex 5h/7d usage windows (from x-codex-* response headers)
+# - 刷新 OpenAI OAuth 的 Codex 5h/7d 窗口用量（来自响应头 x-codex-*）
+#
+# WARNING: Probing consumes real quota. Keep it disabled unless needed.
+# 注意：探活会消耗真实配额，非必要请保持关闭。
+oauth_probe:
+  # Enable periodic probing
+  # 是否启用
+  enabled: false
+  # Check interval (minutes)
+  # 检查间隔（分钟）
+  check_interval_minutes: 15
+  # Idle threshold (minutes): only probe accounts that have NOT been used within this window.
+  # 闲置阈值（分钟）：仅当账号在该时长内未被使用，才会触发探活（兜底机制）。
+  # <=0 表示不按闲置过滤（每轮都会探活符合条件的账号）。
+  idle_threshold_minutes: 15
+  # Per-request timeout (seconds)
+  # 单次请求超时（秒）
+  request_timeout_seconds: 20
+  # Max concurrent probes
+  # 最大并发探活数
+  max_concurrency: 2
+  # Max accounts to probe per cycle (0 = unlimited)
+  # 每轮最多探活账号数（0 = 不限制）
+  max_accounts_per_cycle: 0

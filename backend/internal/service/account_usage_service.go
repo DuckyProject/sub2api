@@ -182,6 +182,7 @@ type AccountUsageService struct {
 	antigravityQuotaFetcher *AntigravityQuotaFetcher
 	cache                   *UsageCache
 	identityCache           IdentityCache
+	usageSnapshotSyncCache  sync.Map // accountID -> time.Time (best-effort throttle)
 }
 
 // NewAccountUsageService 创建AccountUsageService实例

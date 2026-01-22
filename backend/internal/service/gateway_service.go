@@ -200,6 +200,7 @@ type GatewayService struct {
 	accountRepo         AccountRepository
 	groupRepo           GroupRepository
 	usageLogRepo        UsageLogRepository
+	accountUsageService *AccountUsageService
 	userRepo            UserRepository
 	userSubRepo         UserSubscriptionRepository
 	cache               GatewayCache
@@ -221,6 +222,7 @@ func NewGatewayService(
 	accountRepo AccountRepository,
 	groupRepo GroupRepository,
 	usageLogRepo UsageLogRepository,
+	accountUsageService *AccountUsageService,
 	userRepo UserRepository,
 	userSubRepo UserSubscriptionRepository,
 	cache GatewayCache,
@@ -240,6 +242,7 @@ func NewGatewayService(
 		accountRepo:         accountRepo,
 		groupRepo:           groupRepo,
 		usageLogRepo:        usageLogRepo,
+		accountUsageService: accountUsageService,
 		userRepo:            userRepo,
 		userSubRepo:         userSubRepo,
 		cache:               cache,
@@ -2961,6 +2964,16 @@ func (s *GatewayService) handleErrorResponse(ctx context.Context, resp *http.Res
 		return nil, &UpstreamFailoverError{StatusCode: resp.StatusCode}
 	}
 
+	// For 429s, also try to refresh quota snapshots to DB extra so the admin UI can show
+	// accurate window usage + reset times (especially useful for Claude OAuth 5h/7d windows).
+	if resp.StatusCode == http.StatusTooManyRequests && s.accountUsageService != nil {
+		go func(a *Account) {
+			updateCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			defer cancel()
+			_ = s.accountUsageService.SyncUsageSnapshotToExtra(updateCtx, a, usageSnapshotSourceGateway)
+		}(account)
+	}
+
 	// 记录上游错误响应体摘要便于排障（可选：由配置控制；不回显到客户端）
 	if s.cfg != nil && s.cfg.Gateway.LogUpstreamErrorBody {
 		log.Printf(
@@ -3555,6 +3568,7 @@ func (s *GatewayService) RecordUsage(ctx context.Context, input *RecordUsageInpu
 	if s.cfg != nil && s.cfg.RunMode == config.RunModeSimple {
 		log.Printf("[SIMPLE MODE] Usage recorded (not billed): user=%d, tokens=%d", usageLog.UserID, usageLog.TotalTokens())
 		s.deferredService.ScheduleLastUsedUpdate(account.ID)
+		s.maybeSyncAccountUsageSnapshot(account)
 		return nil
 	}
 
@@ -3583,8 +3597,41 @@ func (s *GatewayService) RecordUsage(ctx context.Context, input *RecordUsageInpu
 
 	// Schedule batch update for account last_used_at
 	s.deferredService.ScheduleLastUsedUpdate(account.ID)
+	s.maybeSyncAccountUsageSnapshot(account)
 
 	return nil
+}
+
+func (s *GatewayService) maybeSyncAccountUsageSnapshot(account *Account) {
+	if s == nil || s.accountUsageService == nil || account == nil {
+		return
+	}
+	var minInterval time.Duration
+	switch account.Platform {
+	case PlatformGemini:
+		minInterval = time.Minute
+	case PlatformAnthropic:
+		// Claude OAuth usage API is remote; keep it low-frequency to avoid adding latency/cost.
+		minInterval = 5 * time.Minute
+	default:
+		return
+	}
+
+	// Fast-path throttle: avoid spawning goroutines when we know we just synced recently.
+	if minInterval > 0 {
+		now := time.Now()
+		if v, ok := s.accountUsageService.usageSnapshotSyncCache.Load(account.ID); ok {
+			if last, ok := v.(time.Time); ok && now.Sub(last) < minInterval {
+				return
+			}
+		}
+	}
+
+	go func(a *Account, interval time.Duration) {
+		updateCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		_ = s.accountUsageService.MaybeSyncUsageSnapshotToExtra(updateCtx, a, usageSnapshotSourceGateway, interval)
+	}(account, minInterval)
 }
 
 // ForwardCountTokens 转发 count_tokens 请求到上游 API

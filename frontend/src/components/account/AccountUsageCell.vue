@@ -1,66 +1,39 @@
 <template>
   <div v-if="showUsageWindows">
-    <!-- Anthropic OAuth and Setup Token accounts: fetch real usage data -->
+    <!-- Anthropic OAuth and Setup Token accounts: show usage snapshot from account.extra -->
     <template
       v-if="
         account.platform === 'anthropic' &&
         (account.type === 'oauth' || account.type === 'setup-token')
       "
     >
-      <!-- Loading state -->
-      <div v-if="loading" class="space-y-1.5">
-        <!-- OAuth: 3 rows, Setup Token: 1 row -->
-        <div class="flex items-center gap-1">
-          <div class="h-3 w-[32px] animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
-          <div class="h-1.5 w-8 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700"></div>
-          <div class="h-3 w-[32px] animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
-        </div>
-        <template v-if="account.type === 'oauth'">
-          <div class="flex items-center gap-1">
-            <div class="h-3 w-[32px] animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
-            <div class="h-1.5 w-8 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700"></div>
-            <div class="h-3 w-[32px] animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
-          </div>
-          <div class="flex items-center gap-1">
-            <div class="h-3 w-[32px] animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
-            <div class="h-1.5 w-8 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700"></div>
-            <div class="h-3 w-[32px] animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
-          </div>
-        </template>
-      </div>
-
-      <!-- Error state -->
-      <div v-else-if="error" class="text-xs text-red-500">
-        {{ error }}
-      </div>
-
       <!-- Usage data -->
-      <div v-else-if="usageInfo" class="space-y-1">
+      <div v-if="displayUsageInfo" class="space-y-1">
         <!-- 5h Window -->
         <UsageProgressBar
-          v-if="usageInfo.five_hour"
+          v-if="displayUsageInfo.five_hour"
           label="5h"
-          :utilization="usageInfo.five_hour.utilization"
-          :resets-at="usageInfo.five_hour.resets_at"
-          :window-stats="usageInfo.five_hour.window_stats"
+          :utilization="displayUsageInfo.five_hour.utilization"
+          :resets-at="displayUsageInfo.five_hour.resets_at"
+          :window-stats="displayUsageInfo.five_hour.window_stats"
           color="indigo"
         />
 
         <!-- 7d Window (OAuth only) -->
         <UsageProgressBar
-          v-if="usageInfo.seven_day"
+          v-if="displayUsageInfo.seven_day"
           label="7d"
-          :utilization="usageInfo.seven_day.utilization"
-          :resets-at="usageInfo.seven_day.resets_at"
+          :utilization="displayUsageInfo.seven_day.utilization"
+          :resets-at="displayUsageInfo.seven_day.resets_at"
           color="emerald"
         />
 
         <!-- 7d Sonnet Window (OAuth only) -->
         <UsageProgressBar
-          v-if="usageInfo.seven_day_sonnet"
+          v-if="displayUsageInfo.seven_day_sonnet"
           label="7d S"
-          :utilization="usageInfo.seven_day_sonnet.utilization"
-          :resets-at="usageInfo.seven_day_sonnet.resets_at"
+          :utilization="displayUsageInfo.seven_day_sonnet.utilization"
+          :resets-at="displayUsageInfo.seven_day_sonnet.resets_at"
           color="purple"
         />
       </div>
@@ -231,16 +204,7 @@
 
       <!-- Usage data or unlimited flow -->
       <div class="space-y-1">
-        <div v-if="loading" class="space-y-1">
-          <div class="flex items-center gap-1">
-            <div class="h-3 w-[32px] animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
-            <div class="h-1.5 w-8 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700"></div>
-            <div class="h-3 w-[32px] animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
-          </div>
-        </div>
-        <div v-else-if="error" class="text-xs text-red-500">
-          {{ error }}
-        </div>
+        <div v-if="!hasGeminiUsageSnapshot" class="text-xs text-gray-400">-</div>
         <!-- Gemini: show daily usage bars when available -->
         <div v-else-if="geminiUsageAvailable" class="space-y-1">
           <UsageProgressBar
@@ -293,7 +257,32 @@ const { t } = useI18n()
 
 const loading = ref(false)
 const error = ref<string | null>(null)
-const usageInfo = ref<AccountUsageInfo | null>(null)
+const apiUsageInfo = ref<AccountUsageInfo | null>(null)
+
+const claudeUsageSnapshot = computed<AccountUsageInfo | null>(() => {
+  const extra = props.account.extra as Record<string, unknown> | undefined
+  if (!extra) return null
+  const snap = extra.claude_usage_snapshot as AccountUsageInfo | undefined
+  return snap || null
+})
+
+const geminiUsageSnapshot = computed<AccountUsageInfo | null>(() => {
+  const extra = props.account.extra as Record<string, unknown> | undefined
+  if (!extra) return null
+  const snap = extra.gemini_usage_snapshot as AccountUsageInfo | undefined
+  return snap || null
+})
+
+const hasGeminiUsageSnapshot = computed(() => {
+  return !!geminiUsageSnapshot.value
+})
+
+const usageInfo = computed<AccountUsageInfo | null>(() => {
+  if (props.account.platform === 'antigravity') return apiUsageInfo.value
+  if (props.account.platform === 'anthropic') return claudeUsageSnapshot.value
+  if (props.account.platform === 'gemini') return geminiUsageSnapshot.value
+  return null
+})
 
 // Show usage windows for OAuth and Setup Token accounts
 const showUsageWindows = computed(() => {
@@ -303,12 +292,6 @@ const showUsageWindows = computed(() => {
 })
 
 const shouldFetchUsage = computed(() => {
-  if (props.account.platform === 'anthropic') {
-    return props.account.type === 'oauth' || props.account.type === 'setup-token'
-  }
-  if (props.account.platform === 'gemini') {
-    return true
-  }
   if (props.account.platform === 'antigravity') {
     return props.account.type === 'oauth'
   }
@@ -317,12 +300,12 @@ const shouldFetchUsage = computed(() => {
 
 const geminiUsageAvailable = computed(() => {
   return (
-    !!usageInfo.value?.gemini_shared_daily ||
-    !!usageInfo.value?.gemini_pro_daily ||
-    !!usageInfo.value?.gemini_flash_daily ||
-    !!usageInfo.value?.gemini_shared_minute ||
-    !!usageInfo.value?.gemini_pro_minute ||
-    !!usageInfo.value?.gemini_flash_minute
+    !!displayUsageInfo.value?.gemini_shared_daily ||
+    !!displayUsageInfo.value?.gemini_pro_daily ||
+    !!displayUsageInfo.value?.gemini_flash_daily ||
+    !!displayUsageInfo.value?.gemini_shared_minute ||
+    !!displayUsageInfo.value?.gemini_pro_minute ||
+    !!displayUsageInfo.value?.gemini_flash_minute
   )
 })
 
@@ -340,138 +323,179 @@ const hasCodexUsage = computed(() => {
   )
 })
 
-// 5h window usage (prefer canonical field)
+const codexUsageUpdatedAtMs = computed(() => {
+  const extra = props.account.extra
+  if (!extra?.codex_usage_updated_at) return null
+  const ms = Date.parse(extra.codex_usage_updated_at)
+  if (Number.isNaN(ms)) return null
+  return ms
+})
+
+const computeResetAtFromUpdatedAt = (resetAfterSeconds: unknown): string | null => {
+  if (resetAfterSeconds === null || resetAfterSeconds === undefined) return null
+  if (typeof resetAfterSeconds !== 'number') return null
+  const updatedAtMs = codexUsageUpdatedAtMs.value
+  if (updatedAtMs === null) return null
+  return new Date(updatedAtMs + resetAfterSeconds * 1000).toISOString()
+}
+
+const normalizeISOTime = (v: unknown): string | null => {
+  if (typeof v !== 'string') return null
+  const trimmed = v.trim()
+  if (!trimmed) return null
+  const ms = Date.parse(trimmed)
+  if (Number.isNaN(ms)) return null
+  return new Date(ms).toISOString()
+}
+
+const isExpiredISO = (iso: string | null): boolean => {
+  if (!iso) return false
+  const ms = Date.parse(iso)
+  if (Number.isNaN(ms)) return false
+  return ms <= Date.now()
+}
+
+const normalizeUsageProgress = (p: any): any => {
+  if (!p) return null
+  const resetsAt = normalizeISOTime(p.resets_at)
+  const expired = isExpiredISO(resetsAt)
+  return {
+    ...p,
+    utilization: expired ? 0 : p.utilization,
+    resets_at: expired ? null : resetsAt
+  }
+}
+
+const displayUsageInfo = computed<AccountUsageInfo | null>(() => {
+  const u = usageInfo.value
+  if (!u) return null
+  return {
+    ...u,
+    updated_at: normalizeISOTime(u.updated_at) || u.updated_at,
+    five_hour: normalizeUsageProgress(u.five_hour),
+    seven_day: normalizeUsageProgress(u.seven_day),
+    seven_day_sonnet: normalizeUsageProgress(u.seven_day_sonnet),
+    gemini_shared_daily: normalizeUsageProgress(u.gemini_shared_daily),
+    gemini_pro_daily: normalizeUsageProgress(u.gemini_pro_daily),
+    gemini_flash_daily: normalizeUsageProgress(u.gemini_flash_daily),
+    gemini_shared_minute: normalizeUsageProgress(u.gemini_shared_minute),
+    gemini_pro_minute: normalizeUsageProgress(u.gemini_pro_minute),
+    gemini_flash_minute: normalizeUsageProgress(u.gemini_flash_minute),
+    antigravity_quota: u.antigravity_quota
+  }
+})
+
+// 5h window reset time (absolute; prefer backend-provided reset_at)
+const codex5hResetAtRaw = computed(() => {
+  const extra = props.account.extra
+  if (!extra) return null
+
+  const abs = normalizeISOTime(extra.codex_5h_reset_at)
+  if (abs) return abs
+
+  const canonical = computeResetAtFromUpdatedAt(extra.codex_5h_reset_after_seconds)
+  if (canonical) return canonical
+
+  // Fallback: detect from legacy fields using window_minutes (use codex_usage_updated_at + reset_after_seconds)
+  if (extra.codex_primary_window_minutes !== undefined && extra.codex_primary_window_minutes <= 360) {
+    const v = computeResetAtFromUpdatedAt(extra.codex_primary_reset_after_seconds)
+    if (v) return v
+  }
+  if (extra.codex_secondary_window_minutes !== undefined && extra.codex_secondary_window_minutes <= 360) {
+    const v = computeResetAtFromUpdatedAt(extra.codex_secondary_reset_after_seconds)
+    if (v) return v
+  }
+
+  // Legacy assumption: secondary = 5h (may be incorrect)
+  return computeResetAtFromUpdatedAt(extra.codex_secondary_reset_after_seconds)
+})
+
+const codex5hExpired = computed(() => isExpiredISO(codex5hResetAtRaw.value))
+const codex5hResetAt = computed(() => (codex5hExpired.value ? null : codex5hResetAtRaw.value))
+
+// 5h window usage (prefer canonical field); fallback to 0 after window expires (no scheduling + no sync)
 const codex5hUsedPercent = computed(() => {
   const extra = props.account.extra
   if (!extra) return null
 
+  let used: number | null = null
+
   // Prefer canonical field
   if (extra.codex_5h_used_percent !== undefined) {
-    return extra.codex_5h_used_percent
-  }
-
-  // Fallback: detect from legacy fields using window_minutes
-  if (
-    extra.codex_primary_window_minutes !== undefined &&
-    extra.codex_primary_window_minutes <= 360
-  ) {
-    return extra.codex_primary_used_percent ?? null
-  }
-  if (
-    extra.codex_secondary_window_minutes !== undefined &&
-    extra.codex_secondary_window_minutes <= 360
-  ) {
-    return extra.codex_secondary_used_percent ?? null
-  }
-
-  // Legacy assumption: secondary = 5h (may be incorrect)
-  return extra.codex_secondary_used_percent ?? null
-})
-
-const codex5hResetAt = computed(() => {
-  const extra = props.account.extra
-  if (!extra) return null
-
-  // Prefer canonical field
-  if (extra.codex_5h_reset_after_seconds !== undefined) {
-    const resetTime = new Date(Date.now() + extra.codex_5h_reset_after_seconds * 1000)
-    return resetTime.toISOString()
-  }
-
-  // Fallback: detect from legacy fields using window_minutes
-  if (
-    extra.codex_primary_window_minutes !== undefined &&
-    extra.codex_primary_window_minutes <= 360
-  ) {
-    if (extra.codex_primary_reset_after_seconds !== undefined) {
-      const resetTime = new Date(Date.now() + extra.codex_primary_reset_after_seconds * 1000)
-      return resetTime.toISOString()
-    }
-  }
-  if (
-    extra.codex_secondary_window_minutes !== undefined &&
-    extra.codex_secondary_window_minutes <= 360
-  ) {
-    if (extra.codex_secondary_reset_after_seconds !== undefined) {
-      const resetTime = new Date(Date.now() + extra.codex_secondary_reset_after_seconds * 1000)
-      return resetTime.toISOString()
+    used = extra.codex_5h_used_percent
+  } else {
+    // Fallback: detect from legacy fields using window_minutes
+    if (extra.codex_primary_window_minutes !== undefined && extra.codex_primary_window_minutes <= 360) {
+      used = extra.codex_primary_used_percent ?? null
+    } else if (
+      extra.codex_secondary_window_minutes !== undefined &&
+      extra.codex_secondary_window_minutes <= 360
+    ) {
+      used = extra.codex_secondary_used_percent ?? null
+    } else {
+      // Legacy assumption: secondary = 5h (may be incorrect)
+      used = extra.codex_secondary_used_percent ?? null
     }
   }
 
-  // Legacy assumption: secondary = 5h
-  if (extra.codex_secondary_reset_after_seconds !== undefined) {
-    const resetTime = new Date(Date.now() + extra.codex_secondary_reset_after_seconds * 1000)
-    return resetTime.toISOString()
-  }
-
-  return null
+  if (used !== null && codex5hExpired.value) return 0
+  return used
 })
 
 // 7d window usage (prefer canonical field)
+const codex7dResetAtRaw = computed(() => {
+  const extra = props.account.extra
+  if (!extra) return null
+
+  const abs = normalizeISOTime(extra.codex_7d_reset_at)
+  if (abs) return abs
+
+  const canonical = computeResetAtFromUpdatedAt(extra.codex_7d_reset_after_seconds)
+  if (canonical) return canonical
+
+  // Fallback: detect from legacy fields using window_minutes (use codex_usage_updated_at + reset_after_seconds)
+  if (extra.codex_primary_window_minutes !== undefined && extra.codex_primary_window_minutes >= 10000) {
+    const v = computeResetAtFromUpdatedAt(extra.codex_primary_reset_after_seconds)
+    if (v) return v
+  }
+  if (extra.codex_secondary_window_minutes !== undefined && extra.codex_secondary_window_minutes >= 10000) {
+    const v = computeResetAtFromUpdatedAt(extra.codex_secondary_reset_after_seconds)
+    if (v) return v
+  }
+
+  // Legacy assumption: primary = 7d (may be incorrect)
+  return computeResetAtFromUpdatedAt(extra.codex_primary_reset_after_seconds)
+})
+
+const codex7dExpired = computed(() => isExpiredISO(codex7dResetAtRaw.value))
+const codex7dResetAt = computed(() => (codex7dExpired.value ? null : codex7dResetAtRaw.value))
+
 const codex7dUsedPercent = computed(() => {
   const extra = props.account.extra
   if (!extra) return null
 
+  let used: number | null = null
+
   // Prefer canonical field
   if (extra.codex_7d_used_percent !== undefined) {
-    return extra.codex_7d_used_percent
-  }
-
-  // Fallback: detect from legacy fields using window_minutes
-  if (
-    extra.codex_primary_window_minutes !== undefined &&
-    extra.codex_primary_window_minutes >= 10000
-  ) {
-    return extra.codex_primary_used_percent ?? null
-  }
-  if (
-    extra.codex_secondary_window_minutes !== undefined &&
-    extra.codex_secondary_window_minutes >= 10000
-  ) {
-    return extra.codex_secondary_used_percent ?? null
-  }
-
-  // Legacy assumption: primary = 7d (may be incorrect)
-  return extra.codex_primary_used_percent ?? null
-})
-
-const codex7dResetAt = computed(() => {
-  const extra = props.account.extra
-  if (!extra) return null
-
-  // Prefer canonical field
-  if (extra.codex_7d_reset_after_seconds !== undefined) {
-    const resetTime = new Date(Date.now() + extra.codex_7d_reset_after_seconds * 1000)
-    return resetTime.toISOString()
-  }
-
-  // Fallback: detect from legacy fields using window_minutes
-  if (
-    extra.codex_primary_window_minutes !== undefined &&
-    extra.codex_primary_window_minutes >= 10000
-  ) {
-    if (extra.codex_primary_reset_after_seconds !== undefined) {
-      const resetTime = new Date(Date.now() + extra.codex_primary_reset_after_seconds * 1000)
-      return resetTime.toISOString()
-    }
-  }
-  if (
-    extra.codex_secondary_window_minutes !== undefined &&
-    extra.codex_secondary_window_minutes >= 10000
-  ) {
-    if (extra.codex_secondary_reset_after_seconds !== undefined) {
-      const resetTime = new Date(Date.now() + extra.codex_secondary_reset_after_seconds * 1000)
-      return resetTime.toISOString()
+    used = extra.codex_7d_used_percent
+  } else {
+    // Fallback: detect from legacy fields using window_minutes
+    if (extra.codex_primary_window_minutes !== undefined && extra.codex_primary_window_minutes >= 10000) {
+      used = extra.codex_primary_used_percent ?? null
+    } else if (
+      extra.codex_secondary_window_minutes !== undefined &&
+      extra.codex_secondary_window_minutes >= 10000
+    ) {
+      used = extra.codex_secondary_used_percent ?? null
+    } else {
+      // Legacy assumption: primary = 7d (may be incorrect)
+      used = extra.codex_primary_used_percent ?? null
     }
   }
 
-  // Legacy assumption: primary = 7d
-  if (extra.codex_primary_reset_after_seconds !== undefined) {
-    const resetTime = new Date(Date.now() + extra.codex_primary_reset_after_seconds * 1000)
-    return resetTime.toISOString()
-  }
-
-  return null
+  if (used !== null && codex7dExpired.value) return 0
+  return used
 })
 
 // Antigravity quota types (用于 API 返回的数据)
@@ -721,8 +745,8 @@ const geminiUsesSharedDaily = computed(() => {
   if (props.account.platform !== 'gemini') return false
   // Per requirement: Google One & GCP are shared RPD pools (no per-model breakdown).
   return (
-    !!usageInfo.value?.gemini_shared_daily ||
-    !!usageInfo.value?.gemini_shared_minute ||
+    !!displayUsageInfo.value?.gemini_shared_daily ||
+    !!displayUsageInfo.value?.gemini_shared_minute ||
     geminiOAuthType.value === 'google_one' ||
     isGeminiCodeAssist.value
   )
@@ -730,7 +754,7 @@ const geminiUsesSharedDaily = computed(() => {
 
 const geminiUsageBars = computed(() => {
   if (props.account.platform !== 'gemini') return []
-  if (!usageInfo.value) return []
+  if (!displayUsageInfo.value) return []
 
   const bars: Array<{
     key: string
@@ -742,7 +766,7 @@ const geminiUsageBars = computed(() => {
   }> = []
 
   if (geminiUsesSharedDaily.value) {
-    const sharedDaily = usageInfo.value.gemini_shared_daily
+    const sharedDaily = displayUsageInfo.value.gemini_shared_daily
     if (sharedDaily) {
       bars.push({
         key: 'shared_daily',
@@ -756,7 +780,7 @@ const geminiUsageBars = computed(() => {
     return bars
   }
 
-  const pro = usageInfo.value.gemini_pro_daily
+  const pro = displayUsageInfo.value.gemini_pro_daily
   if (pro) {
     bars.push({
       key: 'pro_daily',
@@ -768,7 +792,7 @@ const geminiUsageBars = computed(() => {
       })
   }
 
-  const flash = usageInfo.value.gemini_flash_daily
+  const flash = displayUsageInfo.value.gemini_flash_daily
   if (flash) {
     bars.push({
       key: 'flash_daily',
@@ -830,7 +854,7 @@ const loadUsage = async () => {
   error.value = null
 
   try {
-    usageInfo.value = await adminAPI.accounts.getUsage(props.account.id)
+    apiUsageInfo.value = await adminAPI.accounts.getUsage(props.account.id)
   } catch (e: any) {
     error.value = t('common.error')
     console.error('Failed to load usage:', e)

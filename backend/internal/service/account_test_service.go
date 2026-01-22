@@ -14,6 +14,7 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/Wei-Shaw/sub2api/internal/config"
 	"github.com/Wei-Shaw/sub2api/internal/pkg/claude"
@@ -46,7 +47,9 @@ type TestEvent struct {
 type AccountTestService struct {
 	accountRepo               AccountRepository
 	geminiTokenProvider       *GeminiTokenProvider
+	openAITokenProvider       *OpenAITokenProvider
 	antigravityGatewayService *AntigravityGatewayService
+	accountUsageService       *AccountUsageService
 	httpUpstream              HTTPUpstream
 	cfg                       *config.Config
 }
@@ -55,14 +58,18 @@ type AccountTestService struct {
 func NewAccountTestService(
 	accountRepo AccountRepository,
 	geminiTokenProvider *GeminiTokenProvider,
+	openAITokenProvider *OpenAITokenProvider,
 	antigravityGatewayService *AntigravityGatewayService,
+	accountUsageService *AccountUsageService,
 	httpUpstream HTTPUpstream,
 	cfg *config.Config,
 ) *AccountTestService {
 	return &AccountTestService{
 		accountRepo:               accountRepo,
 		geminiTokenProvider:       geminiTokenProvider,
+		openAITokenProvider:       openAITokenProvider,
 		antigravityGatewayService: antigravityGatewayService,
+		accountUsageService:       accountUsageService,
 		httpUpstream:              httpUpstream,
 		cfg:                       cfg,
 	}
@@ -97,11 +104,17 @@ func generateSessionString() (string, error) {
 	return fmt.Sprintf("user_%s_account__session_%s", hex64, sessionUUID), nil
 }
 
-// createTestPayload creates a Claude Code style test request payload
-func createTestPayload(modelID string) (map[string]any, error) {
+// createTestPayload creates a Claude Code style test request payload.
+// nonce is optional and can be used to avoid upstream caching when probing periodically.
+func createTestPayload(modelID string, nonce string) (map[string]any, error) {
 	sessionID, err := generateSessionString()
 	if err != nil {
 		return nil, err
+	}
+
+	text := "hi"
+	if strings.TrimSpace(nonce) != "" {
+		text = fmt.Sprintf("hi-%s", strings.TrimSpace(nonce))
 	}
 
 	return map[string]any{
@@ -112,7 +125,7 @@ func createTestPayload(modelID string) (map[string]any, error) {
 				"content": []map[string]any{
 					{
 						"type": "text",
-						"text": "hi",
+						"text": text,
 						"cache_control": map[string]string{
 							"type": "ephemeral",
 						},
@@ -175,6 +188,7 @@ func (s *AccountTestService) testClaudeAccountConnection(c *gin.Context, account
 	if testModelID == "" {
 		testModelID = claude.DefaultTestModel
 	}
+	nonce, _ := randomHexString(8)
 
 	// For API Key accounts with model mapping, map the model
 	if account.Type == "apikey" {
@@ -228,7 +242,7 @@ func (s *AccountTestService) testClaudeAccountConnection(c *gin.Context, account
 	c.Writer.Flush()
 
 	// Create Claude Code style payload (same for all account types)
-	payload, err := createTestPayload(testModelID)
+	payload, err := createTestPayload(testModelID, nonce)
 	if err != nil {
 		return s.sendErrorAndEnd(c, "Failed to create test payload")
 	}
@@ -271,6 +285,16 @@ func (s *AccountTestService) testClaudeAccountConnection(c *gin.Context, account
 	}
 	defer func() { _ = resp.Body.Close() }()
 
+	// For Claude OAuth / Setup-Token accounts, sync usage snapshot (5h/7d windows) to DB extra.
+	// Do this regardless of status code so users can observe quota + reset times even when rate-limited.
+	if account.IsOAuth() && s.accountUsageService != nil {
+		go func(a *Account) {
+			updateCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			defer cancel()
+			_ = s.accountUsageService.SyncUsageSnapshotToExtra(updateCtx, a, usageSnapshotSourceTest)
+		}(account)
+	}
+
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
 		return s.sendErrorAndEnd(c, fmt.Sprintf("API returned %d: %s", resp.StatusCode, string(body)))
@@ -289,6 +313,8 @@ func (s *AccountTestService) testOpenAIAccountConnection(c *gin.Context, account
 	if testModelID == "" {
 		testModelID = openai.DefaultTestModel
 	}
+
+	nonce, _ := randomHexString(8)
 
 	// For API Key accounts with model mapping, map the model
 	if account.Type == "apikey" {
@@ -309,8 +335,16 @@ func (s *AccountTestService) testOpenAIAccountConnection(c *gin.Context, account
 	if account.IsOAuth() {
 		isOAuth = true
 		// OAuth - use Bearer token with ChatGPT internal API
-		authToken = account.GetOpenAIAccessToken()
-		if authToken == "" {
+		if s.openAITokenProvider != nil && account.Platform == PlatformOpenAI && account.Type == AccountTypeOAuth {
+			token, err := s.openAITokenProvider.GetAccessToken(ctx, account)
+			if err != nil {
+				return s.sendErrorAndEnd(c, fmt.Sprintf("Failed to get access token: %s", err.Error()))
+			}
+			authToken = token
+		} else {
+			authToken = account.GetOpenAIAccessToken()
+		}
+		if strings.TrimSpace(authToken) == "" {
 			return s.sendErrorAndEnd(c, "No access token available")
 		}
 
@@ -345,7 +379,7 @@ func (s *AccountTestService) testOpenAIAccountConnection(c *gin.Context, account
 	c.Writer.Flush()
 
 	// Create OpenAI Responses API payload
-	payload := createOpenAITestPayload(testModelID, isOAuth)
+	payload := createOpenAITestPayload(testModelID, isOAuth, nonce)
 	payloadBytes, _ := json.Marshal(payload)
 
 	// Send test_start event
@@ -380,6 +414,23 @@ func (s *AccountTestService) testOpenAIAccountConnection(c *gin.Context, account
 		return s.sendErrorAndEnd(c, fmt.Sprintf("Request failed: %s", err.Error()))
 	}
 	defer func() { _ = resp.Body.Close() }()
+
+	// For OpenAI OAuth (ChatGPT Codex), extract and persist quota windows from response headers.
+	// Do this even when status != 200 so that users can see 5h/7d usage + reset times.
+	if isOAuth {
+		if snapshot := extractCodexUsageHeaders(resp.Header); snapshot != nil {
+			if derived := deriveCodexUsageSnapshot(snapshot); derived != nil && len(derived.updates) > 0 {
+				go func(d *codexDerivedUsageSnapshot) {
+					updateCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+					defer cancel()
+					_ = s.accountRepo.UpdateExtra(updateCtx, account.ID, d.updates)
+					if resetAt := codexRateLimitResetAt(d); resetAt != nil && resetAt.After(time.Now()) {
+						_ = s.accountRepo.SetRateLimited(updateCtx, account.ID, *resetAt)
+					}
+				}(derived)
+			}
+		}
+	}
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
@@ -418,7 +469,8 @@ func (s *AccountTestService) testGeminiAccountConnection(c *gin.Context, account
 	c.Writer.Flush()
 
 	// Create test payload (Gemini format)
-	payload := createGeminiTestPayload()
+	nonce, _ := randomHexString(8)
+	payload := createGeminiTestPayload(nonce)
 
 	// Build request based on account type
 	var req *http.Request
@@ -451,6 +503,16 @@ func (s *AccountTestService) testGeminiAccountConnection(c *gin.Context, account
 		return s.sendErrorAndEnd(c, fmt.Sprintf("Request failed: %s", err.Error()))
 	}
 	defer func() { _ = resp.Body.Close() }()
+
+	// Persist (simulated) Gemini quota snapshot to DB extra so account list can show it without per-row API calls.
+	// This is local computation (usage_logs + quota policy), not an upstream quota API.
+	if s.accountUsageService != nil {
+		go func(a *Account) {
+			updateCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			defer cancel()
+			_ = s.accountUsageService.SyncUsageSnapshotToExtra(updateCtx, a, usageSnapshotSourceTest)
+		}(account)
+	}
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
@@ -602,14 +664,19 @@ func (s *AccountTestService) buildCodeAssistRequest(ctx context.Context, accessT
 	return req, nil
 }
 
-// createGeminiTestPayload creates a minimal test payload for Gemini API
-func createGeminiTestPayload() []byte {
+// createGeminiTestPayload creates a minimal test payload for Gemini API.
+// nonce is optional and can be used to avoid upstream caching when probing periodically.
+func createGeminiTestPayload(nonce string) []byte {
+	text := "hi"
+	if strings.TrimSpace(nonce) != "" {
+		text = fmt.Sprintf("hi-%s", strings.TrimSpace(nonce))
+	}
 	payload := map[string]any{
 		"contents": []map[string]any{
 			{
 				"role": "user",
 				"parts": []map[string]any{
-					{"text": "hi"},
+					{"text": text},
 				},
 			},
 		},
@@ -694,7 +761,12 @@ func (s *AccountTestService) processGeminiStream(c *gin.Context, body io.Reader)
 }
 
 // createOpenAITestPayload creates a test payload for OpenAI Responses API
-func createOpenAITestPayload(modelID string, isOAuth bool) map[string]any {
+func createOpenAITestPayload(modelID string, isOAuth bool, nonce string) map[string]any {
+	text := "hi"
+	if strings.TrimSpace(nonce) != "" {
+		text = fmt.Sprintf("hi-%s", nonce)
+	}
+
 	payload := map[string]any{
 		"model": modelID,
 		"input": []map[string]any{
@@ -703,7 +775,7 @@ func createOpenAITestPayload(modelID string, isOAuth bool) map[string]any {
 				"content": []map[string]any{
 					{
 						"type": "input_text",
-						"text": "hi",
+						"text": text,
 					},
 				},
 			},
@@ -714,6 +786,10 @@ func createOpenAITestPayload(modelID string, isOAuth bool) map[string]any {
 	// OAuth accounts using ChatGPT internal API require store: false
 	if isOAuth {
 		payload["store"] = false
+		// Randomize prompt_cache_key to avoid upstream caching between probes/tests.
+		if strings.TrimSpace(nonce) != "" {
+			payload["prompt_cache_key"] = "sub2api_test_" + strings.TrimSpace(nonce)
+		}
 	}
 
 	// All accounts require instructions for Responses API

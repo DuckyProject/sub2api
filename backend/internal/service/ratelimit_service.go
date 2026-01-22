@@ -343,6 +343,28 @@ func (s *RateLimitService) handleCustomErrorCode(ctx context.Context, account *A
 // handle429 处理429限流错误
 // 解析响应头获取重置时间，标记账号为限流状态
 func (s *RateLimitService) handle429(ctx context.Context, account *Account, headers http.Header, responseBody []byte) {
+	// OpenAI OAuth (ChatGPT Codex) uses x-codex-* headers to describe real quota windows (5h/7d).
+	// If we can derive an exact reset time from those headers, prefer it over the generic 5-minute fallback.
+	if account != nil && account.Platform == PlatformOpenAI && account.Type == AccountTypeOAuth {
+		if snapshot := extractCodexUsageHeaders(headers); snapshot != nil {
+			derived := deriveCodexUsageSnapshot(snapshot)
+			if derived != nil && len(derived.updates) > 0 {
+				if err := s.accountRepo.UpdateExtra(ctx, account.ID, derived.updates); err != nil {
+					slog.Warn("openai_codex_usage_snapshot_update_failed", "account_id", account.ID, "error", err)
+				}
+			}
+
+			if resetAt := codexRateLimitResetAt(derived); resetAt != nil && resetAt.After(time.Now()) {
+				if err := s.accountRepo.SetRateLimited(ctx, account.ID, *resetAt); err != nil {
+					slog.Warn("rate_limit_set_failed", "account_id", account.ID, "error", err)
+				} else {
+					slog.Info("openai_oauth_codex_rate_limited", "account_id", account.ID, "reset_at", *resetAt)
+				}
+				return
+			}
+		}
+	}
+
 	// 解析重置时间戳
 	resetTimestamp := headers.Get("anthropic-ratelimit-unified-reset")
 	if resetTimestamp == "" {
