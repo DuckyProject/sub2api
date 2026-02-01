@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -12,6 +13,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/Wei-Shaw/sub2api/ent/entitlementevent"
 	"github.com/Wei-Shaw/sub2api/ent/group"
 	"github.com/Wei-Shaw/sub2api/ent/predicate"
 	"github.com/Wei-Shaw/sub2api/ent/redeemcode"
@@ -21,13 +23,14 @@ import (
 // RedeemCodeQuery is the builder for querying RedeemCode entities.
 type RedeemCodeQuery struct {
 	config
-	ctx        *QueryContext
-	order      []redeemcode.OrderOption
-	inters     []Interceptor
-	predicates []predicate.RedeemCode
-	withUser   *UserQuery
-	withGroup  *GroupQuery
-	modifiers  []func(*sql.Selector)
+	ctx                   *QueryContext
+	order                 []redeemcode.OrderOption
+	inters                []Interceptor
+	predicates            []predicate.RedeemCode
+	withUser              *UserQuery
+	withGroup             *GroupQuery
+	withEntitlementEvents *EntitlementEventQuery
+	modifiers             []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -101,6 +104,28 @@ func (_q *RedeemCodeQuery) QueryGroup() *GroupQuery {
 			sqlgraph.From(redeemcode.Table, redeemcode.FieldID, selector),
 			sqlgraph.To(group.Table, group.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, redeemcode.GroupTable, redeemcode.GroupColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryEntitlementEvents chains the current query on the "entitlement_events" edge.
+func (_q *RedeemCodeQuery) QueryEntitlementEvents() *EntitlementEventQuery {
+	query := (&EntitlementEventClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(redeemcode.Table, redeemcode.FieldID, selector),
+			sqlgraph.To(entitlementevent.Table, entitlementevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, redeemcode.EntitlementEventsTable, redeemcode.EntitlementEventsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -295,13 +320,14 @@ func (_q *RedeemCodeQuery) Clone() *RedeemCodeQuery {
 		return nil
 	}
 	return &RedeemCodeQuery{
-		config:     _q.config,
-		ctx:        _q.ctx.Clone(),
-		order:      append([]redeemcode.OrderOption{}, _q.order...),
-		inters:     append([]Interceptor{}, _q.inters...),
-		predicates: append([]predicate.RedeemCode{}, _q.predicates...),
-		withUser:   _q.withUser.Clone(),
-		withGroup:  _q.withGroup.Clone(),
+		config:                _q.config,
+		ctx:                   _q.ctx.Clone(),
+		order:                 append([]redeemcode.OrderOption{}, _q.order...),
+		inters:                append([]Interceptor{}, _q.inters...),
+		predicates:            append([]predicate.RedeemCode{}, _q.predicates...),
+		withUser:              _q.withUser.Clone(),
+		withGroup:             _q.withGroup.Clone(),
+		withEntitlementEvents: _q.withEntitlementEvents.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -327,6 +353,17 @@ func (_q *RedeemCodeQuery) WithGroup(opts ...func(*GroupQuery)) *RedeemCodeQuery
 		opt(query)
 	}
 	_q.withGroup = query
+	return _q
+}
+
+// WithEntitlementEvents tells the query-builder to eager-load the nodes that are connected to
+// the "entitlement_events" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *RedeemCodeQuery) WithEntitlementEvents(opts ...func(*EntitlementEventQuery)) *RedeemCodeQuery {
+	query := (&EntitlementEventClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withEntitlementEvents = query
 	return _q
 }
 
@@ -408,9 +445,10 @@ func (_q *RedeemCodeQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*R
 	var (
 		nodes       = []*RedeemCode{}
 		_spec       = _q.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			_q.withUser != nil,
 			_q.withGroup != nil,
+			_q.withEntitlementEvents != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -443,6 +481,15 @@ func (_q *RedeemCodeQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*R
 	if query := _q.withGroup; query != nil {
 		if err := _q.loadGroup(ctx, query, nodes, nil,
 			func(n *RedeemCode, e *Group) { n.Edges.Group = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withEntitlementEvents; query != nil {
+		if err := _q.loadEntitlementEvents(ctx, query, nodes,
+			func(n *RedeemCode) { n.Edges.EntitlementEvents = []*EntitlementEvent{} },
+			func(n *RedeemCode, e *EntitlementEvent) {
+				n.Edges.EntitlementEvents = append(n.Edges.EntitlementEvents, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
@@ -510,6 +557,39 @@ func (_q *RedeemCodeQuery) loadGroup(ctx context.Context, query *GroupQuery, nod
 		for i := range nodes {
 			assign(nodes[i], n)
 		}
+	}
+	return nil
+}
+func (_q *RedeemCodeQuery) loadEntitlementEvents(ctx context.Context, query *EntitlementEventQuery, nodes []*RedeemCode, init func(*RedeemCode), assign func(*RedeemCode, *EntitlementEvent)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int64]*RedeemCode)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(entitlementevent.FieldRedeemCodeID)
+	}
+	query.Where(predicate.EntitlementEvent(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(redeemcode.EntitlementEventsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.RedeemCodeID
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "redeem_code_id" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "redeem_code_id" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }

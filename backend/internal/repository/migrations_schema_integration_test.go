@@ -48,6 +48,23 @@ func TestMigrationsRunner_IsIdempotent_AndSchemaIsUpToDate(t *testing.T) {
 	require.NoError(t, tx.QueryRowContext(context.Background(), "SELECT to_regclass('public.settings')").Scan(&settingsRegclass))
 	require.True(t, settingsRegclass.Valid, "expected settings table to exist")
 
+	// payment tables (046)
+	var paymentProductsRegclass sql.NullString
+	require.NoError(t, tx.QueryRowContext(context.Background(), "SELECT to_regclass('public.payment_products')").Scan(&paymentProductsRegclass))
+	require.True(t, paymentProductsRegclass.Valid, "expected payment_products table to exist")
+
+	var paymentOrdersRegclass sql.NullString
+	require.NoError(t, tx.QueryRowContext(context.Background(), "SELECT to_regclass('public.payment_orders')").Scan(&paymentOrdersRegclass))
+	require.True(t, paymentOrdersRegclass.Valid, "expected payment_orders table to exist")
+
+	var paymentNotificationsRegclass sql.NullString
+	require.NoError(t, tx.QueryRowContext(context.Background(), "SELECT to_regclass('public.payment_notifications')").Scan(&paymentNotificationsRegclass))
+	require.True(t, paymentNotificationsRegclass.Valid, "expected payment_notifications table to exist")
+
+	var entitlementEventsRegclass sql.NullString
+	require.NoError(t, tx.QueryRowContext(context.Background(), "SELECT to_regclass('public.entitlement_events')").Scan(&entitlementEventsRegclass))
+	require.True(t, entitlementEventsRegclass.Valid, "expected entitlement_events table to exist")
+
 	// user_allowed_groups table should exist
 	var uagRegclass sql.NullString
 	require.NoError(t, tx.QueryRowContext(context.Background(), "SELECT to_regclass('public.user_allowed_groups')").Scan(&uagRegclass))

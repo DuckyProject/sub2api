@@ -21,8 +21,20 @@ type Announcement func(*sql.Selector)
 // AnnouncementRead is the predicate function for announcementread builders.
 type AnnouncementRead func(*sql.Selector)
 
+// EntitlementEvent is the predicate function for entitlementevent builders.
+type EntitlementEvent func(*sql.Selector)
+
 // Group is the predicate function for group builders.
 type Group func(*sql.Selector)
+
+// PaymentNotification is the predicate function for paymentnotification builders.
+type PaymentNotification func(*sql.Selector)
+
+// PaymentOrder is the predicate function for paymentorder builders.
+type PaymentOrder func(*sql.Selector)
+
+// PaymentProduct is the predicate function for paymentproduct builders.
+type PaymentProduct func(*sql.Selector)
 
 // PromoCode is the predicate function for promocode builders.
 type PromoCode func(*sql.Selector)

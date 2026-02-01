@@ -13,7 +13,9 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/Wei-Shaw/sub2api/ent/announcementread"
 	"github.com/Wei-Shaw/sub2api/ent/apikey"
+	"github.com/Wei-Shaw/sub2api/ent/entitlementevent"
 	"github.com/Wei-Shaw/sub2api/ent/group"
+	"github.com/Wei-Shaw/sub2api/ent/paymentorder"
 	"github.com/Wei-Shaw/sub2api/ent/promocodeusage"
 	"github.com/Wei-Shaw/sub2api/ent/redeemcode"
 	"github.com/Wei-Shaw/sub2api/ent/usagelog"
@@ -343,6 +345,51 @@ func (_c *UserCreate) AddPromoCodeUsages(v ...*PromoCodeUsage) *UserCreate {
 		ids[i] = v[i].ID
 	}
 	return _c.AddPromoCodeUsageIDs(ids...)
+}
+
+// AddPaymentOrderIDs adds the "payment_orders" edge to the PaymentOrder entity by IDs.
+func (_c *UserCreate) AddPaymentOrderIDs(ids ...int64) *UserCreate {
+	_c.mutation.AddPaymentOrderIDs(ids...)
+	return _c
+}
+
+// AddPaymentOrders adds the "payment_orders" edges to the PaymentOrder entity.
+func (_c *UserCreate) AddPaymentOrders(v ...*PaymentOrder) *UserCreate {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddPaymentOrderIDs(ids...)
+}
+
+// AddEntitlementEventIDs adds the "entitlement_events" edge to the EntitlementEvent entity by IDs.
+func (_c *UserCreate) AddEntitlementEventIDs(ids ...int64) *UserCreate {
+	_c.mutation.AddEntitlementEventIDs(ids...)
+	return _c
+}
+
+// AddEntitlementEvents adds the "entitlement_events" edges to the EntitlementEvent entity.
+func (_c *UserCreate) AddEntitlementEvents(v ...*EntitlementEvent) *UserCreate {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddEntitlementEventIDs(ids...)
+}
+
+// AddEntitlementEventsActorUserIDs adds the "entitlement_events_actor_user" edge to the EntitlementEvent entity by IDs.
+func (_c *UserCreate) AddEntitlementEventsActorUserIDs(ids ...int64) *UserCreate {
+	_c.mutation.AddEntitlementEventsActorUserIDs(ids...)
+	return _c
+}
+
+// AddEntitlementEventsActorUser adds the "entitlement_events_actor_user" edges to the EntitlementEvent entity.
+func (_c *UserCreate) AddEntitlementEventsActorUser(v ...*EntitlementEvent) *UserCreate {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddEntitlementEventsActorUserIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -711,6 +758,54 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(promocodeusage.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.PaymentOrdersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PaymentOrdersTable,
+			Columns: []string{user.PaymentOrdersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(paymentorder.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.EntitlementEventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.EntitlementEventsTable,
+			Columns: []string{user.EntitlementEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(entitlementevent.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.EntitlementEventsActorUserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.EntitlementEventsActorUserTable,
+			Columns: []string{user.EntitlementEventsActorUserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(entitlementevent.FieldID, field.TypeInt64),
 			},
 		}
 		for _, k := range nodes {

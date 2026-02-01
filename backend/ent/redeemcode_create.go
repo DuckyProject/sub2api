@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/Wei-Shaw/sub2api/ent/entitlementevent"
 	"github.com/Wei-Shaw/sub2api/ent/group"
 	"github.com/Wei-Shaw/sub2api/ent/redeemcode"
 	"github.com/Wei-Shaw/sub2api/ent/user"
@@ -178,6 +179,21 @@ func (_c *RedeemCodeCreate) SetUser(v *User) *RedeemCodeCreate {
 // SetGroup sets the "group" edge to the Group entity.
 func (_c *RedeemCodeCreate) SetGroup(v *Group) *RedeemCodeCreate {
 	return _c.SetGroupID(v.ID)
+}
+
+// AddEntitlementEventIDs adds the "entitlement_events" edge to the EntitlementEvent entity by IDs.
+func (_c *RedeemCodeCreate) AddEntitlementEventIDs(ids ...int64) *RedeemCodeCreate {
+	_c.mutation.AddEntitlementEventIDs(ids...)
+	return _c
+}
+
+// AddEntitlementEvents adds the "entitlement_events" edges to the EntitlementEvent entity.
+func (_c *RedeemCodeCreate) AddEntitlementEvents(v ...*EntitlementEvent) *RedeemCodeCreate {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddEntitlementEventIDs(ids...)
 }
 
 // Mutation returns the RedeemCodeMutation object of the builder.
@@ -363,6 +379,22 @@ func (_c *RedeemCodeCreate) createSpec() (*RedeemCode, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.GroupID = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.EntitlementEventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   redeemcode.EntitlementEventsTable,
+			Columns: []string{redeemcode.EntitlementEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(entitlementevent.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

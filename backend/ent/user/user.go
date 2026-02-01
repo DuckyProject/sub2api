@@ -61,6 +61,12 @@ const (
 	EdgeAttributeValues = "attribute_values"
 	// EdgePromoCodeUsages holds the string denoting the promo_code_usages edge name in mutations.
 	EdgePromoCodeUsages = "promo_code_usages"
+	// EdgePaymentOrders holds the string denoting the payment_orders edge name in mutations.
+	EdgePaymentOrders = "payment_orders"
+	// EdgeEntitlementEvents holds the string denoting the entitlement_events edge name in mutations.
+	EdgeEntitlementEvents = "entitlement_events"
+	// EdgeEntitlementEventsActorUser holds the string denoting the entitlement_events_actor_user edge name in mutations.
+	EdgeEntitlementEventsActorUser = "entitlement_events_actor_user"
 	// EdgeUserAllowedGroups holds the string denoting the user_allowed_groups edge name in mutations.
 	EdgeUserAllowedGroups = "user_allowed_groups"
 	// Table holds the table name of the user in the database.
@@ -126,6 +132,27 @@ const (
 	PromoCodeUsagesInverseTable = "promo_code_usages"
 	// PromoCodeUsagesColumn is the table column denoting the promo_code_usages relation/edge.
 	PromoCodeUsagesColumn = "user_id"
+	// PaymentOrdersTable is the table that holds the payment_orders relation/edge.
+	PaymentOrdersTable = "payment_orders"
+	// PaymentOrdersInverseTable is the table name for the PaymentOrder entity.
+	// It exists in this package in order to avoid circular dependency with the "paymentorder" package.
+	PaymentOrdersInverseTable = "payment_orders"
+	// PaymentOrdersColumn is the table column denoting the payment_orders relation/edge.
+	PaymentOrdersColumn = "user_id"
+	// EntitlementEventsTable is the table that holds the entitlement_events relation/edge.
+	EntitlementEventsTable = "entitlement_events"
+	// EntitlementEventsInverseTable is the table name for the EntitlementEvent entity.
+	// It exists in this package in order to avoid circular dependency with the "entitlementevent" package.
+	EntitlementEventsInverseTable = "entitlement_events"
+	// EntitlementEventsColumn is the table column denoting the entitlement_events relation/edge.
+	EntitlementEventsColumn = "user_id"
+	// EntitlementEventsActorUserTable is the table that holds the entitlement_events_actor_user relation/edge.
+	EntitlementEventsActorUserTable = "entitlement_events"
+	// EntitlementEventsActorUserInverseTable is the table name for the EntitlementEvent entity.
+	// It exists in this package in order to avoid circular dependency with the "entitlementevent" package.
+	EntitlementEventsActorUserInverseTable = "entitlement_events"
+	// EntitlementEventsActorUserColumn is the table column denoting the entitlement_events_actor_user relation/edge.
+	EntitlementEventsActorUserColumn = "actor_user_id"
 	// UserAllowedGroupsTable is the table that holds the user_allowed_groups relation/edge.
 	UserAllowedGroupsTable = "user_allowed_groups"
 	// UserAllowedGroupsInverseTable is the table name for the UserAllowedGroup entity.
@@ -414,6 +441,48 @@ func ByPromoCodeUsages(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
+// ByPaymentOrdersCount orders the results by payment_orders count.
+func ByPaymentOrdersCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newPaymentOrdersStep(), opts...)
+	}
+}
+
+// ByPaymentOrders orders the results by payment_orders terms.
+func ByPaymentOrders(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newPaymentOrdersStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByEntitlementEventsCount orders the results by entitlement_events count.
+func ByEntitlementEventsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newEntitlementEventsStep(), opts...)
+	}
+}
+
+// ByEntitlementEvents orders the results by entitlement_events terms.
+func ByEntitlementEvents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newEntitlementEventsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByEntitlementEventsActorUserCount orders the results by entitlement_events_actor_user count.
+func ByEntitlementEventsActorUserCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newEntitlementEventsActorUserStep(), opts...)
+	}
+}
+
+// ByEntitlementEventsActorUser orders the results by entitlement_events_actor_user terms.
+func ByEntitlementEventsActorUser(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newEntitlementEventsActorUserStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByUserAllowedGroupsCount orders the results by user_allowed_groups count.
 func ByUserAllowedGroupsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -488,6 +557,27 @@ func newPromoCodeUsagesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(PromoCodeUsagesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, PromoCodeUsagesTable, PromoCodeUsagesColumn),
+	)
+}
+func newPaymentOrdersStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(PaymentOrdersInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, PaymentOrdersTable, PaymentOrdersColumn),
+	)
+}
+func newEntitlementEventsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(EntitlementEventsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, EntitlementEventsTable, EntitlementEventsColumn),
+	)
+}
+func newEntitlementEventsActorUserStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(EntitlementEventsActorUserInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, EntitlementEventsActorUserTable, EntitlementEventsActorUserColumn),
 	)
 }
 func newUserAllowedGroupsStep() *sqlgraph.Step {

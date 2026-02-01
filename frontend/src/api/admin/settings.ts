@@ -30,6 +30,20 @@ export interface SystemSettings {
   hide_ccs_import_button: boolean
   purchase_subscription_enabled: boolean
   purchase_subscription_url: string
+  purchase_subscription_mode: 'disabled' | 'iframe' | 'native' | string
+
+  // Payment settings
+  payment_enabled: boolean
+  payment_epay_enabled: boolean
+  payment_epay_gateway_url: string
+  payment_epay_pid: string
+  payment_epay_key_configured: boolean
+  payment_tokenpay_enabled: boolean
+  payment_tokenpay_gateway_url: string
+  payment_tokenpay_merchant_id: string
+  payment_tokenpay_key_configured: boolean
+  payment_balance_exchange_rate: number
+  public_base_url: string
   // SMTP settings
   smtp_host: string
   smtp_port: number
@@ -85,6 +99,20 @@ export interface UpdateSettingsRequest {
   hide_ccs_import_button?: boolean
   purchase_subscription_enabled?: boolean
   purchase_subscription_url?: string
+  purchase_subscription_mode?: 'disabled' | 'iframe' | 'native' | string
+
+  // Payment settings
+  payment_enabled?: boolean
+  payment_epay_enabled?: boolean
+  payment_epay_gateway_url?: string
+  payment_epay_pid?: string
+  payment_epay_key?: string
+  payment_tokenpay_enabled?: boolean
+  payment_tokenpay_gateway_url?: string
+  payment_tokenpay_merchant_id?: string
+  payment_tokenpay_key?: string
+  payment_balance_exchange_rate?: number
+  public_base_url?: string
   smtp_host?: string
   smtp_port?: number
   smtp_username?: string

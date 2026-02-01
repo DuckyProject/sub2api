@@ -16,7 +16,10 @@ import (
 	"github.com/Wei-Shaw/sub2api/ent/account"
 	"github.com/Wei-Shaw/sub2api/ent/accountgroup"
 	"github.com/Wei-Shaw/sub2api/ent/apikey"
+	"github.com/Wei-Shaw/sub2api/ent/entitlementevent"
 	"github.com/Wei-Shaw/sub2api/ent/group"
+	"github.com/Wei-Shaw/sub2api/ent/paymentorder"
+	"github.com/Wei-Shaw/sub2api/ent/paymentproduct"
 	"github.com/Wei-Shaw/sub2api/ent/predicate"
 	"github.com/Wei-Shaw/sub2api/ent/redeemcode"
 	"github.com/Wei-Shaw/sub2api/ent/usagelog"
@@ -28,19 +31,22 @@ import (
 // GroupQuery is the builder for querying Group entities.
 type GroupQuery struct {
 	config
-	ctx                   *QueryContext
-	order                 []group.OrderOption
-	inters                []Interceptor
-	predicates            []predicate.Group
-	withAPIKeys           *APIKeyQuery
-	withRedeemCodes       *RedeemCodeQuery
-	withSubscriptions     *UserSubscriptionQuery
-	withUsageLogs         *UsageLogQuery
-	withAccounts          *AccountQuery
-	withAllowedUsers      *UserQuery
-	withAccountGroups     *AccountGroupQuery
-	withUserAllowedGroups *UserAllowedGroupQuery
-	modifiers             []func(*sql.Selector)
+	ctx                         *QueryContext
+	order                       []group.OrderOption
+	inters                      []Interceptor
+	predicates                  []predicate.Group
+	withAPIKeys                 *APIKeyQuery
+	withRedeemCodes             *RedeemCodeQuery
+	withSubscriptions           *UserSubscriptionQuery
+	withUsageLogs               *UsageLogQuery
+	withAccounts                *AccountQuery
+	withAllowedUsers            *UserQuery
+	withPaymentProducts         *PaymentProductQuery
+	withPaymentOrdersGrantGroup *PaymentOrderQuery
+	withEntitlementEvents       *EntitlementEventQuery
+	withAccountGroups           *AccountGroupQuery
+	withUserAllowedGroups       *UserAllowedGroupQuery
+	modifiers                   []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -202,6 +208,72 @@ func (_q *GroupQuery) QueryAllowedUsers() *UserQuery {
 			sqlgraph.From(group.Table, group.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, true, group.AllowedUsersTable, group.AllowedUsersPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryPaymentProducts chains the current query on the "payment_products" edge.
+func (_q *GroupQuery) QueryPaymentProducts() *PaymentProductQuery {
+	query := (&PaymentProductClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(group.Table, group.FieldID, selector),
+			sqlgraph.To(paymentproduct.Table, paymentproduct.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, group.PaymentProductsTable, group.PaymentProductsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryPaymentOrdersGrantGroup chains the current query on the "payment_orders_grant_group" edge.
+func (_q *GroupQuery) QueryPaymentOrdersGrantGroup() *PaymentOrderQuery {
+	query := (&PaymentOrderClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(group.Table, group.FieldID, selector),
+			sqlgraph.To(paymentorder.Table, paymentorder.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, group.PaymentOrdersGrantGroupTable, group.PaymentOrdersGrantGroupColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryEntitlementEvents chains the current query on the "entitlement_events" edge.
+func (_q *GroupQuery) QueryEntitlementEvents() *EntitlementEventQuery {
+	query := (&EntitlementEventClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(group.Table, group.FieldID, selector),
+			sqlgraph.To(entitlementevent.Table, entitlementevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, group.EntitlementEventsTable, group.EntitlementEventsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -440,19 +512,22 @@ func (_q *GroupQuery) Clone() *GroupQuery {
 		return nil
 	}
 	return &GroupQuery{
-		config:                _q.config,
-		ctx:                   _q.ctx.Clone(),
-		order:                 append([]group.OrderOption{}, _q.order...),
-		inters:                append([]Interceptor{}, _q.inters...),
-		predicates:            append([]predicate.Group{}, _q.predicates...),
-		withAPIKeys:           _q.withAPIKeys.Clone(),
-		withRedeemCodes:       _q.withRedeemCodes.Clone(),
-		withSubscriptions:     _q.withSubscriptions.Clone(),
-		withUsageLogs:         _q.withUsageLogs.Clone(),
-		withAccounts:          _q.withAccounts.Clone(),
-		withAllowedUsers:      _q.withAllowedUsers.Clone(),
-		withAccountGroups:     _q.withAccountGroups.Clone(),
-		withUserAllowedGroups: _q.withUserAllowedGroups.Clone(),
+		config:                      _q.config,
+		ctx:                         _q.ctx.Clone(),
+		order:                       append([]group.OrderOption{}, _q.order...),
+		inters:                      append([]Interceptor{}, _q.inters...),
+		predicates:                  append([]predicate.Group{}, _q.predicates...),
+		withAPIKeys:                 _q.withAPIKeys.Clone(),
+		withRedeemCodes:             _q.withRedeemCodes.Clone(),
+		withSubscriptions:           _q.withSubscriptions.Clone(),
+		withUsageLogs:               _q.withUsageLogs.Clone(),
+		withAccounts:                _q.withAccounts.Clone(),
+		withAllowedUsers:            _q.withAllowedUsers.Clone(),
+		withPaymentProducts:         _q.withPaymentProducts.Clone(),
+		withPaymentOrdersGrantGroup: _q.withPaymentOrdersGrantGroup.Clone(),
+		withEntitlementEvents:       _q.withEntitlementEvents.Clone(),
+		withAccountGroups:           _q.withAccountGroups.Clone(),
+		withUserAllowedGroups:       _q.withUserAllowedGroups.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -522,6 +597,39 @@ func (_q *GroupQuery) WithAllowedUsers(opts ...func(*UserQuery)) *GroupQuery {
 		opt(query)
 	}
 	_q.withAllowedUsers = query
+	return _q
+}
+
+// WithPaymentProducts tells the query-builder to eager-load the nodes that are connected to
+// the "payment_products" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *GroupQuery) WithPaymentProducts(opts ...func(*PaymentProductQuery)) *GroupQuery {
+	query := (&PaymentProductClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withPaymentProducts = query
+	return _q
+}
+
+// WithPaymentOrdersGrantGroup tells the query-builder to eager-load the nodes that are connected to
+// the "payment_orders_grant_group" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *GroupQuery) WithPaymentOrdersGrantGroup(opts ...func(*PaymentOrderQuery)) *GroupQuery {
+	query := (&PaymentOrderClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withPaymentOrdersGrantGroup = query
+	return _q
+}
+
+// WithEntitlementEvents tells the query-builder to eager-load the nodes that are connected to
+// the "entitlement_events" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *GroupQuery) WithEntitlementEvents(opts ...func(*EntitlementEventQuery)) *GroupQuery {
+	query := (&EntitlementEventClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withEntitlementEvents = query
 	return _q
 }
 
@@ -625,13 +733,16 @@ func (_q *GroupQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Group,
 	var (
 		nodes       = []*Group{}
 		_spec       = _q.querySpec()
-		loadedTypes = [8]bool{
+		loadedTypes = [11]bool{
 			_q.withAPIKeys != nil,
 			_q.withRedeemCodes != nil,
 			_q.withSubscriptions != nil,
 			_q.withUsageLogs != nil,
 			_q.withAccounts != nil,
 			_q.withAllowedUsers != nil,
+			_q.withPaymentProducts != nil,
+			_q.withPaymentOrdersGrantGroup != nil,
+			_q.withEntitlementEvents != nil,
 			_q.withAccountGroups != nil,
 			_q.withUserAllowedGroups != nil,
 		}
@@ -696,6 +807,29 @@ func (_q *GroupQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Group,
 		if err := _q.loadAllowedUsers(ctx, query, nodes,
 			func(n *Group) { n.Edges.AllowedUsers = []*User{} },
 			func(n *Group, e *User) { n.Edges.AllowedUsers = append(n.Edges.AllowedUsers, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withPaymentProducts; query != nil {
+		if err := _q.loadPaymentProducts(ctx, query, nodes,
+			func(n *Group) { n.Edges.PaymentProducts = []*PaymentProduct{} },
+			func(n *Group, e *PaymentProduct) { n.Edges.PaymentProducts = append(n.Edges.PaymentProducts, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withPaymentOrdersGrantGroup; query != nil {
+		if err := _q.loadPaymentOrdersGrantGroup(ctx, query, nodes,
+			func(n *Group) { n.Edges.PaymentOrdersGrantGroup = []*PaymentOrder{} },
+			func(n *Group, e *PaymentOrder) {
+				n.Edges.PaymentOrdersGrantGroup = append(n.Edges.PaymentOrdersGrantGroup, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withEntitlementEvents; query != nil {
+		if err := _q.loadEntitlementEvents(ctx, query, nodes,
+			func(n *Group) { n.Edges.EntitlementEvents = []*EntitlementEvent{} },
+			func(n *Group, e *EntitlementEvent) { n.Edges.EntitlementEvents = append(n.Edges.EntitlementEvents, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -964,6 +1098,105 @@ func (_q *GroupQuery) loadAllowedUsers(ctx context.Context, query *UserQuery, no
 		for kn := range nodes {
 			assign(kn, n)
 		}
+	}
+	return nil
+}
+func (_q *GroupQuery) loadPaymentProducts(ctx context.Context, query *PaymentProductQuery, nodes []*Group, init func(*Group), assign func(*Group, *PaymentProduct)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int64]*Group)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(paymentproduct.FieldGroupID)
+	}
+	query.Where(predicate.PaymentProduct(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(group.PaymentProductsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.GroupID
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "group_id" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "group_id" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *GroupQuery) loadPaymentOrdersGrantGroup(ctx context.Context, query *PaymentOrderQuery, nodes []*Group, init func(*Group), assign func(*Group, *PaymentOrder)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int64]*Group)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(paymentorder.FieldGrantGroupID)
+	}
+	query.Where(predicate.PaymentOrder(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(group.PaymentOrdersGrantGroupColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.GrantGroupID
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "grant_group_id" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "grant_group_id" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *GroupQuery) loadEntitlementEvents(ctx context.Context, query *EntitlementEventQuery, nodes []*Group, init func(*Group), assign func(*Group, *EntitlementEvent)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int64]*Group)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(entitlementevent.FieldGroupID)
+	}
+	query.Where(predicate.EntitlementEvent(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(group.EntitlementEventsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.GroupID
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "group_id" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "group_id" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }

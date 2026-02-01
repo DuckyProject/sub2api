@@ -38,6 +38,8 @@ const (
 	EdgeUser = "user"
 	// EdgeGroup holds the string denoting the group edge name in mutations.
 	EdgeGroup = "group"
+	// EdgeEntitlementEvents holds the string denoting the entitlement_events edge name in mutations.
+	EdgeEntitlementEvents = "entitlement_events"
 	// Table holds the table name of the redeemcode in the database.
 	Table = "redeem_codes"
 	// UserTable is the table that holds the user relation/edge.
@@ -54,6 +56,13 @@ const (
 	GroupInverseTable = "groups"
 	// GroupColumn is the table column denoting the group relation/edge.
 	GroupColumn = "group_id"
+	// EntitlementEventsTable is the table that holds the entitlement_events relation/edge.
+	EntitlementEventsTable = "entitlement_events"
+	// EntitlementEventsInverseTable is the table name for the EntitlementEvent entity.
+	// It exists in this package in order to avoid circular dependency with the "entitlementevent" package.
+	EntitlementEventsInverseTable = "entitlement_events"
+	// EntitlementEventsColumn is the table column denoting the entitlement_events relation/edge.
+	EntitlementEventsColumn = "redeem_code_id"
 )
 
 // Columns holds all SQL columns for redeemcode fields.
@@ -171,6 +180,20 @@ func ByGroupField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newGroupStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByEntitlementEventsCount orders the results by entitlement_events count.
+func ByEntitlementEventsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newEntitlementEventsStep(), opts...)
+	}
+}
+
+// ByEntitlementEvents orders the results by entitlement_events terms.
+func ByEntitlementEvents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newEntitlementEventsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newUserStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -183,5 +206,12 @@ func newGroupStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(GroupInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, GroupTable, GroupColumn),
+	)
+}
+func newEntitlementEventsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(EntitlementEventsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, EntitlementEventsTable, EntitlementEventsColumn),
 	)
 }

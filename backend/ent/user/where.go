@@ -1067,6 +1067,75 @@ func HasPromoCodeUsagesWith(preds ...predicate.PromoCodeUsage) predicate.User {
 	})
 }
 
+// HasPaymentOrders applies the HasEdge predicate on the "payment_orders" edge.
+func HasPaymentOrders() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, PaymentOrdersTable, PaymentOrdersColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasPaymentOrdersWith applies the HasEdge predicate on the "payment_orders" edge with a given conditions (other predicates).
+func HasPaymentOrdersWith(preds ...predicate.PaymentOrder) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newPaymentOrdersStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasEntitlementEvents applies the HasEdge predicate on the "entitlement_events" edge.
+func HasEntitlementEvents() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, EntitlementEventsTable, EntitlementEventsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasEntitlementEventsWith applies the HasEdge predicate on the "entitlement_events" edge with a given conditions (other predicates).
+func HasEntitlementEventsWith(preds ...predicate.EntitlementEvent) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newEntitlementEventsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasEntitlementEventsActorUser applies the HasEdge predicate on the "entitlement_events_actor_user" edge.
+func HasEntitlementEventsActorUser() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, EntitlementEventsActorUserTable, EntitlementEventsActorUserColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasEntitlementEventsActorUserWith applies the HasEdge predicate on the "entitlement_events_actor_user" edge with a given conditions (other predicates).
+func HasEntitlementEventsActorUserWith(preds ...predicate.EntitlementEvent) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newEntitlementEventsActorUserStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasUserAllowedGroups applies the HasEdge predicate on the "user_allowed_groups" edge.
 func HasUserAllowedGroups() predicate.User {
 	return predicate.User(func(s *sql.Selector) {

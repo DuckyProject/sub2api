@@ -491,7 +491,19 @@ func TestAPIContracts(t *testing.T) {
 					"home_content": "",
 					"hide_ccs_import_button": false,
 					"purchase_subscription_enabled": false,
-					"purchase_subscription_url": ""
+					"purchase_subscription_url": "",
+					"purchase_subscription_mode": "disabled",
+					"payment_enabled": false,
+					"payment_epay_enabled": false,
+					"payment_epay_gateway_url": "",
+					"payment_epay_pid": "",
+					"payment_epay_key_configured": false,
+					"payment_tokenpay_enabled": false,
+					"payment_tokenpay_gateway_url": "",
+					"payment_tokenpay_merchant_id": "",
+					"payment_tokenpay_key_configured": false,
+					"payment_balance_exchange_rate": 1,
+					"public_base_url": ""
 				}
 			}`,
 		},

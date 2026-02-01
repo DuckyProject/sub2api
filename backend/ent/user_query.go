@@ -15,7 +15,9 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/Wei-Shaw/sub2api/ent/announcementread"
 	"github.com/Wei-Shaw/sub2api/ent/apikey"
+	"github.com/Wei-Shaw/sub2api/ent/entitlementevent"
 	"github.com/Wei-Shaw/sub2api/ent/group"
+	"github.com/Wei-Shaw/sub2api/ent/paymentorder"
 	"github.com/Wei-Shaw/sub2api/ent/predicate"
 	"github.com/Wei-Shaw/sub2api/ent/promocodeusage"
 	"github.com/Wei-Shaw/sub2api/ent/redeemcode"
@@ -29,21 +31,24 @@ import (
 // UserQuery is the builder for querying User entities.
 type UserQuery struct {
 	config
-	ctx                       *QueryContext
-	order                     []user.OrderOption
-	inters                    []Interceptor
-	predicates                []predicate.User
-	withAPIKeys               *APIKeyQuery
-	withRedeemCodes           *RedeemCodeQuery
-	withSubscriptions         *UserSubscriptionQuery
-	withAssignedSubscriptions *UserSubscriptionQuery
-	withAnnouncementReads     *AnnouncementReadQuery
-	withAllowedGroups         *GroupQuery
-	withUsageLogs             *UsageLogQuery
-	withAttributeValues       *UserAttributeValueQuery
-	withPromoCodeUsages       *PromoCodeUsageQuery
-	withUserAllowedGroups     *UserAllowedGroupQuery
-	modifiers                 []func(*sql.Selector)
+	ctx                            *QueryContext
+	order                          []user.OrderOption
+	inters                         []Interceptor
+	predicates                     []predicate.User
+	withAPIKeys                    *APIKeyQuery
+	withRedeemCodes                *RedeemCodeQuery
+	withSubscriptions              *UserSubscriptionQuery
+	withAssignedSubscriptions      *UserSubscriptionQuery
+	withAnnouncementReads          *AnnouncementReadQuery
+	withAllowedGroups              *GroupQuery
+	withUsageLogs                  *UsageLogQuery
+	withAttributeValues            *UserAttributeValueQuery
+	withPromoCodeUsages            *PromoCodeUsageQuery
+	withPaymentOrders              *PaymentOrderQuery
+	withEntitlementEvents          *EntitlementEventQuery
+	withEntitlementEventsActorUser *EntitlementEventQuery
+	withUserAllowedGroups          *UserAllowedGroupQuery
+	modifiers                      []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -278,6 +283,72 @@ func (_q *UserQuery) QueryPromoCodeUsages() *PromoCodeUsageQuery {
 	return query
 }
 
+// QueryPaymentOrders chains the current query on the "payment_orders" edge.
+func (_q *UserQuery) QueryPaymentOrders() *PaymentOrderQuery {
+	query := (&PaymentOrderClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(paymentorder.Table, paymentorder.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.PaymentOrdersTable, user.PaymentOrdersColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryEntitlementEvents chains the current query on the "entitlement_events" edge.
+func (_q *UserQuery) QueryEntitlementEvents() *EntitlementEventQuery {
+	query := (&EntitlementEventClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(entitlementevent.Table, entitlementevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.EntitlementEventsTable, user.EntitlementEventsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryEntitlementEventsActorUser chains the current query on the "entitlement_events_actor_user" edge.
+func (_q *UserQuery) QueryEntitlementEventsActorUser() *EntitlementEventQuery {
+	query := (&EntitlementEventClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(entitlementevent.Table, entitlementevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.EntitlementEventsActorUserTable, user.EntitlementEventsActorUserColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // QueryUserAllowedGroups chains the current query on the "user_allowed_groups" edge.
 func (_q *UserQuery) QueryUserAllowedGroups() *UserAllowedGroupQuery {
 	query := (&UserAllowedGroupClient{config: _q.config}).Query()
@@ -487,21 +558,24 @@ func (_q *UserQuery) Clone() *UserQuery {
 		return nil
 	}
 	return &UserQuery{
-		config:                    _q.config,
-		ctx:                       _q.ctx.Clone(),
-		order:                     append([]user.OrderOption{}, _q.order...),
-		inters:                    append([]Interceptor{}, _q.inters...),
-		predicates:                append([]predicate.User{}, _q.predicates...),
-		withAPIKeys:               _q.withAPIKeys.Clone(),
-		withRedeemCodes:           _q.withRedeemCodes.Clone(),
-		withSubscriptions:         _q.withSubscriptions.Clone(),
-		withAssignedSubscriptions: _q.withAssignedSubscriptions.Clone(),
-		withAnnouncementReads:     _q.withAnnouncementReads.Clone(),
-		withAllowedGroups:         _q.withAllowedGroups.Clone(),
-		withUsageLogs:             _q.withUsageLogs.Clone(),
-		withAttributeValues:       _q.withAttributeValues.Clone(),
-		withPromoCodeUsages:       _q.withPromoCodeUsages.Clone(),
-		withUserAllowedGroups:     _q.withUserAllowedGroups.Clone(),
+		config:                         _q.config,
+		ctx:                            _q.ctx.Clone(),
+		order:                          append([]user.OrderOption{}, _q.order...),
+		inters:                         append([]Interceptor{}, _q.inters...),
+		predicates:                     append([]predicate.User{}, _q.predicates...),
+		withAPIKeys:                    _q.withAPIKeys.Clone(),
+		withRedeemCodes:                _q.withRedeemCodes.Clone(),
+		withSubscriptions:              _q.withSubscriptions.Clone(),
+		withAssignedSubscriptions:      _q.withAssignedSubscriptions.Clone(),
+		withAnnouncementReads:          _q.withAnnouncementReads.Clone(),
+		withAllowedGroups:              _q.withAllowedGroups.Clone(),
+		withUsageLogs:                  _q.withUsageLogs.Clone(),
+		withAttributeValues:            _q.withAttributeValues.Clone(),
+		withPromoCodeUsages:            _q.withPromoCodeUsages.Clone(),
+		withPaymentOrders:              _q.withPaymentOrders.Clone(),
+		withEntitlementEvents:          _q.withEntitlementEvents.Clone(),
+		withEntitlementEventsActorUser: _q.withEntitlementEventsActorUser.Clone(),
+		withUserAllowedGroups:          _q.withUserAllowedGroups.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -607,6 +681,39 @@ func (_q *UserQuery) WithPromoCodeUsages(opts ...func(*PromoCodeUsageQuery)) *Us
 	return _q
 }
 
+// WithPaymentOrders tells the query-builder to eager-load the nodes that are connected to
+// the "payment_orders" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithPaymentOrders(opts ...func(*PaymentOrderQuery)) *UserQuery {
+	query := (&PaymentOrderClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withPaymentOrders = query
+	return _q
+}
+
+// WithEntitlementEvents tells the query-builder to eager-load the nodes that are connected to
+// the "entitlement_events" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithEntitlementEvents(opts ...func(*EntitlementEventQuery)) *UserQuery {
+	query := (&EntitlementEventClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withEntitlementEvents = query
+	return _q
+}
+
+// WithEntitlementEventsActorUser tells the query-builder to eager-load the nodes that are connected to
+// the "entitlement_events_actor_user" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithEntitlementEventsActorUser(opts ...func(*EntitlementEventQuery)) *UserQuery {
+	query := (&EntitlementEventClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withEntitlementEventsActorUser = query
+	return _q
+}
+
 // WithUserAllowedGroups tells the query-builder to eager-load the nodes that are connected to
 // the "user_allowed_groups" edge. The optional arguments are used to configure the query builder of the edge.
 func (_q *UserQuery) WithUserAllowedGroups(opts ...func(*UserAllowedGroupQuery)) *UserQuery {
@@ -696,7 +803,7 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = _q.querySpec()
-		loadedTypes = [10]bool{
+		loadedTypes = [13]bool{
 			_q.withAPIKeys != nil,
 			_q.withRedeemCodes != nil,
 			_q.withSubscriptions != nil,
@@ -706,6 +813,9 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			_q.withUsageLogs != nil,
 			_q.withAttributeValues != nil,
 			_q.withPromoCodeUsages != nil,
+			_q.withPaymentOrders != nil,
+			_q.withEntitlementEvents != nil,
+			_q.withEntitlementEventsActorUser != nil,
 			_q.withUserAllowedGroups != nil,
 		}
 	)
@@ -792,6 +902,29 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		if err := _q.loadPromoCodeUsages(ctx, query, nodes,
 			func(n *User) { n.Edges.PromoCodeUsages = []*PromoCodeUsage{} },
 			func(n *User, e *PromoCodeUsage) { n.Edges.PromoCodeUsages = append(n.Edges.PromoCodeUsages, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withPaymentOrders; query != nil {
+		if err := _q.loadPaymentOrders(ctx, query, nodes,
+			func(n *User) { n.Edges.PaymentOrders = []*PaymentOrder{} },
+			func(n *User, e *PaymentOrder) { n.Edges.PaymentOrders = append(n.Edges.PaymentOrders, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withEntitlementEvents; query != nil {
+		if err := _q.loadEntitlementEvents(ctx, query, nodes,
+			func(n *User) { n.Edges.EntitlementEvents = []*EntitlementEvent{} },
+			func(n *User, e *EntitlementEvent) { n.Edges.EntitlementEvents = append(n.Edges.EntitlementEvents, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withEntitlementEventsActorUser; query != nil {
+		if err := _q.loadEntitlementEventsActorUser(ctx, query, nodes,
+			func(n *User) { n.Edges.EntitlementEventsActorUser = []*EntitlementEvent{} },
+			func(n *User, e *EntitlementEvent) {
+				n.Edges.EntitlementEventsActorUser = append(n.Edges.EntitlementEventsActorUser, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
@@ -1107,6 +1240,99 @@ func (_q *UserQuery) loadPromoCodeUsages(ctx context.Context, query *PromoCodeUs
 		node, ok := nodeids[fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadPaymentOrders(ctx context.Context, query *PaymentOrderQuery, nodes []*User, init func(*User), assign func(*User, *PaymentOrder)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int64]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(paymentorder.FieldUserID)
+	}
+	query.Where(predicate.PaymentOrder(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.PaymentOrdersColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.UserID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadEntitlementEvents(ctx context.Context, query *EntitlementEventQuery, nodes []*User, init func(*User), assign func(*User, *EntitlementEvent)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int64]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(entitlementevent.FieldUserID)
+	}
+	query.Where(predicate.EntitlementEvent(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.EntitlementEventsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.UserID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadEntitlementEventsActorUser(ctx context.Context, query *EntitlementEventQuery, nodes []*User, init func(*User), assign func(*User, *EntitlementEvent)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int64]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(entitlementevent.FieldActorUserID)
+	}
+	query.Where(predicate.EntitlementEvent(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.EntitlementEventsActorUserColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.ActorUserID
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "actor_user_id" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "actor_user_id" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

@@ -651,6 +651,29 @@ func HasGroupWith(preds ...predicate.Group) predicate.RedeemCode {
 	})
 }
 
+// HasEntitlementEvents applies the HasEdge predicate on the "entitlement_events" edge.
+func HasEntitlementEvents() predicate.RedeemCode {
+	return predicate.RedeemCode(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, EntitlementEventsTable, EntitlementEventsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasEntitlementEventsWith applies the HasEdge predicate on the "entitlement_events" edge with a given conditions (other predicates).
+func HasEntitlementEventsWith(preds ...predicate.EntitlementEvent) predicate.RedeemCode {
+	return predicate.RedeemCode(func(s *sql.Selector) {
+		step := newEntitlementEventsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.RedeemCode) predicate.RedeemCode {
 	return predicate.RedeemCode(sql.AndPredicates(predicates...))

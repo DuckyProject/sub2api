@@ -75,6 +75,18 @@ func (s *SettingService) GetPublicSettings(ctx context.Context) (*PublicSettings
 		SettingKeyHideCcsImportButton,
 		SettingKeyPurchaseSubscriptionEnabled,
 		SettingKeyPurchaseSubscriptionURL,
+		SettingKeyPurchaseSubscriptionMode,
+
+		SettingKeyPaymentEnabled,
+		SettingKeyPaymentEpayEnabled,
+		SettingKeyPaymentEpayGatewayURL,
+		SettingKeyPaymentEpayPID,
+		SettingKeyPaymentEpayKey,
+		SettingKeyPaymentTokenPayEnabled,
+		SettingKeyPaymentTokenPayGatewayURL,
+		SettingKeyPaymentTokenPayMerchantID,
+		SettingKeyPaymentTokenPayKey,
+
 		SettingKeyLinuxDoConnectEnabled,
 	}
 
@@ -94,6 +106,38 @@ func (s *SettingService) GetPublicSettings(ctx context.Context) (*PublicSettings
 	emailVerifyEnabled := settings[SettingKeyEmailVerifyEnabled] == "true"
 	passwordResetEnabled := emailVerifyEnabled && settings[SettingKeyPasswordResetEnabled] == "true"
 
+	purchaseMode := normalizePurchaseSubscriptionMode(settings[SettingKeyPurchaseSubscriptionMode])
+	if purchaseMode == "" {
+		// 兼容旧逻辑：无 mode 时，根据 purchase_subscription_enabled 判断。
+		if settings[SettingKeyPurchaseSubscriptionEnabled] == "true" {
+			purchaseMode = "iframe"
+		} else {
+			purchaseMode = "disabled"
+		}
+	}
+	purchaseEnabled := purchaseMode != "disabled"
+	purchaseURL := strings.TrimSpace(settings[SettingKeyPurchaseSubscriptionURL])
+
+	paymentEnabled := settings[SettingKeyPaymentEnabled] == "true"
+	paymentMethods := make([]string, 0, 2)
+	if paymentEnabled {
+		if settings[SettingKeyPaymentEpayEnabled] == "true" &&
+			strings.TrimSpace(settings[SettingKeyPaymentEpayGatewayURL]) != "" &&
+			strings.TrimSpace(settings[SettingKeyPaymentEpayPID]) != "" &&
+			strings.TrimSpace(settings[SettingKeyPaymentEpayKey]) != "" {
+			paymentMethods = append(paymentMethods, "epay")
+		}
+		if settings[SettingKeyPaymentTokenPayEnabled] == "true" &&
+			strings.TrimSpace(settings[SettingKeyPaymentTokenPayGatewayURL]) != "" &&
+			strings.TrimSpace(settings[SettingKeyPaymentTokenPayMerchantID]) != "" &&
+			strings.TrimSpace(settings[SettingKeyPaymentTokenPayKey]) != "" {
+			paymentMethods = append(paymentMethods, "tokenpay")
+		}
+	}
+	if len(paymentMethods) == 0 {
+		paymentEnabled = false
+	}
+
 	return &PublicSettings{
 		RegistrationEnabled:         settings[SettingKeyRegistrationEnabled] == "true",
 		EmailVerifyEnabled:          emailVerifyEnabled,
@@ -110,8 +154,11 @@ func (s *SettingService) GetPublicSettings(ctx context.Context) (*PublicSettings
 		DocURL:                      settings[SettingKeyDocURL],
 		HomeContent:                 settings[SettingKeyHomeContent],
 		HideCcsImportButton:         settings[SettingKeyHideCcsImportButton] == "true",
-		PurchaseSubscriptionEnabled: settings[SettingKeyPurchaseSubscriptionEnabled] == "true",
-		PurchaseSubscriptionURL:     strings.TrimSpace(settings[SettingKeyPurchaseSubscriptionURL]),
+		PurchaseSubscriptionEnabled: purchaseEnabled,
+		PurchaseSubscriptionURL:     purchaseURL,
+		PurchaseSubscriptionMode:    purchaseMode,
+		PaymentEnabled:              paymentEnabled,
+		PaymentMethods:              paymentMethods,
 		LinuxDoOAuthEnabled:         linuxDoEnabled,
 	}, nil
 }
@@ -137,25 +184,28 @@ func (s *SettingService) GetPublicSettingsForInjection(ctx context.Context) (any
 
 	// Return a struct that matches the frontend's expected format
 	return &struct {
-		RegistrationEnabled         bool   `json:"registration_enabled"`
-		EmailVerifyEnabled          bool   `json:"email_verify_enabled"`
-		PromoCodeEnabled            bool   `json:"promo_code_enabled"`
-		PasswordResetEnabled        bool   `json:"password_reset_enabled"`
-		TotpEnabled                 bool   `json:"totp_enabled"`
-		TurnstileEnabled            bool   `json:"turnstile_enabled"`
-		TurnstileSiteKey            string `json:"turnstile_site_key,omitempty"`
-		SiteName                    string `json:"site_name"`
-		SiteLogo                    string `json:"site_logo,omitempty"`
-		SiteSubtitle                string `json:"site_subtitle,omitempty"`
-		APIBaseURL                  string `json:"api_base_url,omitempty"`
-		ContactInfo                 string `json:"contact_info,omitempty"`
-		DocURL                      string `json:"doc_url,omitempty"`
-		HomeContent                 string `json:"home_content,omitempty"`
-		HideCcsImportButton         bool   `json:"hide_ccs_import_button"`
-		PurchaseSubscriptionEnabled bool   `json:"purchase_subscription_enabled"`
-		PurchaseSubscriptionURL     string `json:"purchase_subscription_url,omitempty"`
-		LinuxDoOAuthEnabled         bool   `json:"linuxdo_oauth_enabled"`
-		Version                     string `json:"version,omitempty"`
+		RegistrationEnabled         bool     `json:"registration_enabled"`
+		EmailVerifyEnabled          bool     `json:"email_verify_enabled"`
+		PromoCodeEnabled            bool     `json:"promo_code_enabled"`
+		PasswordResetEnabled        bool     `json:"password_reset_enabled"`
+		TotpEnabled                 bool     `json:"totp_enabled"`
+		TurnstileEnabled            bool     `json:"turnstile_enabled"`
+		TurnstileSiteKey            string   `json:"turnstile_site_key,omitempty"`
+		SiteName                    string   `json:"site_name"`
+		SiteLogo                    string   `json:"site_logo,omitempty"`
+		SiteSubtitle                string   `json:"site_subtitle,omitempty"`
+		APIBaseURL                  string   `json:"api_base_url,omitempty"`
+		ContactInfo                 string   `json:"contact_info,omitempty"`
+		DocURL                      string   `json:"doc_url,omitempty"`
+		HomeContent                 string   `json:"home_content,omitempty"`
+		HideCcsImportButton         bool     `json:"hide_ccs_import_button"`
+		PurchaseSubscriptionEnabled bool     `json:"purchase_subscription_enabled"`
+		PurchaseSubscriptionURL     string   `json:"purchase_subscription_url,omitempty"`
+		PurchaseSubscriptionMode    string   `json:"purchase_subscription_mode"`
+		PaymentEnabled              bool     `json:"payment_enabled"`
+		PaymentMethods              []string `json:"payment_methods"`
+		LinuxDoOAuthEnabled         bool     `json:"linuxdo_oauth_enabled"`
+		Version                     string   `json:"version,omitempty"`
 	}{
 		RegistrationEnabled:         settings.RegistrationEnabled,
 		EmailVerifyEnabled:          settings.EmailVerifyEnabled,
@@ -174,6 +224,9 @@ func (s *SettingService) GetPublicSettingsForInjection(ctx context.Context) (any
 		HideCcsImportButton:         settings.HideCcsImportButton,
 		PurchaseSubscriptionEnabled: settings.PurchaseSubscriptionEnabled,
 		PurchaseSubscriptionURL:     settings.PurchaseSubscriptionURL,
+		PurchaseSubscriptionMode:    settings.PurchaseSubscriptionMode,
+		PaymentEnabled:              settings.PaymentEnabled,
+		PaymentMethods:              settings.PaymentMethods,
 		LinuxDoOAuthEnabled:         settings.LinuxDoOAuthEnabled,
 		Version:                     s.version,
 	}, nil
@@ -227,6 +280,24 @@ func (s *SettingService) UpdateSettings(ctx context.Context, settings *SystemSet
 	updates[SettingKeyHideCcsImportButton] = strconv.FormatBool(settings.HideCcsImportButton)
 	updates[SettingKeyPurchaseSubscriptionEnabled] = strconv.FormatBool(settings.PurchaseSubscriptionEnabled)
 	updates[SettingKeyPurchaseSubscriptionURL] = strings.TrimSpace(settings.PurchaseSubscriptionURL)
+	updates[SettingKeyPurchaseSubscriptionMode] = strings.TrimSpace(settings.PurchaseSubscriptionMode)
+
+	// 支付设置
+	updates[SettingKeyPaymentEnabled] = strconv.FormatBool(settings.PaymentEnabled)
+	updates[SettingKeyPaymentEpayEnabled] = strconv.FormatBool(settings.PaymentEpayEnabled)
+	updates[SettingKeyPaymentEpayGatewayURL] = strings.TrimSpace(settings.PaymentEpayGatewayURL)
+	updates[SettingKeyPaymentEpayPID] = strings.TrimSpace(settings.PaymentEpayPID)
+	if settings.PaymentEpayKey != "" {
+		updates[SettingKeyPaymentEpayKey] = strings.TrimSpace(settings.PaymentEpayKey)
+	}
+	updates[SettingKeyPaymentTokenPayEnabled] = strconv.FormatBool(settings.PaymentTokenPayEnabled)
+	updates[SettingKeyPaymentTokenPayGatewayURL] = strings.TrimSpace(settings.PaymentTokenPayGatewayURL)
+	updates[SettingKeyPaymentTokenPayMerchantID] = strings.TrimSpace(settings.PaymentTokenPayMerchantID)
+	if settings.PaymentTokenPayKey != "" {
+		updates[SettingKeyPaymentTokenPayKey] = strings.TrimSpace(settings.PaymentTokenPayKey)
+	}
+	updates[SettingKeyPaymentBalanceExchangeRate] = strconv.FormatFloat(settings.PaymentBalanceExchangeRate, 'f', 8, 64)
+	updates[SettingKeyPublicBaseURL] = strings.TrimSpace(settings.PublicBaseURL)
 
 	// 默认配置
 	updates[SettingKeyDefaultConcurrency] = strconv.Itoa(settings.DefaultConcurrency)
@@ -315,6 +386,15 @@ func (s *SettingService) IsTotpEncryptionKeyConfigured() bool {
 	return s.cfg.Totp.EncryptionKeyConfigured
 }
 
+// IsPaymentEnabled 检查是否启用支付功能
+func (s *SettingService) IsPaymentEnabled(ctx context.Context) bool {
+	value, err := s.settingRepo.GetValue(ctx, SettingKeyPaymentEnabled)
+	if err != nil {
+		return false
+	}
+	return value == "true"
+}
+
 // GetSiteName 获取网站名称
 func (s *SettingService) GetSiteName(ctx context.Context) string {
 	value, err := s.settingRepo.GetValue(ctx, SettingKeySiteName)
@@ -369,6 +449,30 @@ func (s *SettingService) InitializeDefaultSettings(ctx context.Context) error {
 		SettingKeySiteLogo:                    "",
 		SettingKeyPurchaseSubscriptionEnabled: "false",
 		SettingKeyPurchaseSubscriptionURL:     "",
+		SettingKeyPurchaseSubscriptionMode:    "disabled",
+		SettingKeyHomeContent:                 "",
+		SettingKeyHideCcsImportButton:         "false",
+
+		SettingKeyPaymentEnabled:             "false",
+		SettingKeyPaymentEpayEnabled:         "false",
+		SettingKeyPaymentEpayGatewayURL:      "",
+		SettingKeyPaymentEpayPID:             "",
+		SettingKeyPaymentEpayKey:             "",
+		SettingKeyPaymentTokenPayEnabled:     "false",
+		SettingKeyPaymentTokenPayGatewayURL:  "",
+		SettingKeyPaymentTokenPayMerchantID:  "",
+		SettingKeyPaymentTokenPayKey:         "",
+		SettingKeyPaymentBalanceExchangeRate: "1",
+		SettingKeyPublicBaseURL:              "",
+		SettingKeyPasswordResetEnabled:       "false",
+		SettingKeyTotpEnabled:                "false",
+		SettingKeyTurnstileEnabled:           "false",
+		SettingKeyTurnstileSiteKey:           "",
+		SettingKeyTurnstileSecretKey:         "",
+		SettingKeyLinuxDoConnectEnabled:      "false",
+		SettingKeyLinuxDoConnectClientID:     "",
+		SettingKeyLinuxDoConnectClientSecret: "",
+		SettingKeyLinuxDoConnectRedirectURL:  "",
 		SettingKeyDefaultConcurrency:          strconv.Itoa(s.cfg.Default.UserConcurrency),
 		SettingKeyDefaultBalance:              strconv.FormatFloat(s.cfg.Default.UserBalance, 'f', 8, 64),
 		SettingKeySMTPPort:                    "587",
@@ -421,6 +525,33 @@ func (s *SettingService) parseSettings(settings map[string]string) *SystemSettin
 		HideCcsImportButton:          settings[SettingKeyHideCcsImportButton] == "true",
 		PurchaseSubscriptionEnabled:  settings[SettingKeyPurchaseSubscriptionEnabled] == "true",
 		PurchaseSubscriptionURL:      strings.TrimSpace(settings[SettingKeyPurchaseSubscriptionURL]),
+		PurchaseSubscriptionMode:     normalizePurchaseSubscriptionMode(settings[SettingKeyPurchaseSubscriptionMode]),
+		PaymentEnabled:               settings[SettingKeyPaymentEnabled] == "true",
+		PaymentEpayEnabled:           settings[SettingKeyPaymentEpayEnabled] == "true",
+		PaymentEpayGatewayURL:        strings.TrimSpace(settings[SettingKeyPaymentEpayGatewayURL]),
+		PaymentEpayPID:               strings.TrimSpace(settings[SettingKeyPaymentEpayPID]),
+		PaymentEpayKeyConfigured:     strings.TrimSpace(settings[SettingKeyPaymentEpayKey]) != "",
+		PaymentTokenPayEnabled:       settings[SettingKeyPaymentTokenPayEnabled] == "true",
+		PaymentTokenPayGatewayURL:    strings.TrimSpace(settings[SettingKeyPaymentTokenPayGatewayURL]),
+		PaymentTokenPayMerchantID:    strings.TrimSpace(settings[SettingKeyPaymentTokenPayMerchantID]),
+		PaymentTokenPayKeyConfigured: strings.TrimSpace(settings[SettingKeyPaymentTokenPayKey]) != "",
+		PaymentBalanceExchangeRate:   1,
+		PublicBaseURL:                strings.TrimSpace(settings[SettingKeyPublicBaseURL]),
+	}
+
+	if v := strings.TrimSpace(settings[SettingKeyPaymentBalanceExchangeRate]); v != "" {
+		if f, err := strconv.ParseFloat(v, 64); err == nil && f > 0 {
+			result.PaymentBalanceExchangeRate = f
+		}
+	}
+
+	if result.PurchaseSubscriptionMode == "" {
+		// 兼容旧逻辑：无 mode 时，根据 purchase_subscription_enabled 判断。
+		if result.PurchaseSubscriptionEnabled {
+			result.PurchaseSubscriptionMode = "iframe"
+		} else {
+			result.PurchaseSubscriptionMode = "disabled"
+		}
 	}
 
 	// 解析整数类型
@@ -446,6 +577,8 @@ func (s *SettingService) parseSettings(settings map[string]string) *SystemSettin
 	// 敏感信息直接返回，方便测试连接时使用
 	result.SMTPPassword = settings[SettingKeySMTPPassword]
 	result.TurnstileSecretKey = settings[SettingKeyTurnstileSecretKey]
+	result.PaymentEpayKey = strings.TrimSpace(settings[SettingKeyPaymentEpayKey])
+	result.PaymentTokenPayKey = strings.TrimSpace(settings[SettingKeyPaymentTokenPayKey])
 
 	// LinuxDo Connect 设置：
 	// - 兼容 config.yaml/env（避免老部署因为未迁移到数据库设置而被意外关闭）
@@ -520,6 +653,17 @@ func isFalseSettingValue(value string) bool {
 		return true
 	default:
 		return false
+	}
+}
+
+func normalizePurchaseSubscriptionMode(value string) string {
+	switch strings.ToLower(strings.TrimSpace(value)) {
+	case "disabled", "iframe", "native":
+		return strings.ToLower(strings.TrimSpace(value))
+	case "":
+		return ""
+	default:
+		return ""
 	}
 }
 

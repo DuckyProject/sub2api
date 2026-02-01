@@ -13,7 +13,10 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/Wei-Shaw/sub2api/ent/account"
 	"github.com/Wei-Shaw/sub2api/ent/apikey"
+	"github.com/Wei-Shaw/sub2api/ent/entitlementevent"
 	"github.com/Wei-Shaw/sub2api/ent/group"
+	"github.com/Wei-Shaw/sub2api/ent/paymentorder"
+	"github.com/Wei-Shaw/sub2api/ent/paymentproduct"
 	"github.com/Wei-Shaw/sub2api/ent/predicate"
 	"github.com/Wei-Shaw/sub2api/ent/redeemcode"
 	"github.com/Wei-Shaw/sub2api/ent/usagelog"
@@ -511,6 +514,51 @@ func (_u *GroupUpdate) AddAllowedUsers(v ...*User) *GroupUpdate {
 	return _u.AddAllowedUserIDs(ids...)
 }
 
+// AddPaymentProductIDs adds the "payment_products" edge to the PaymentProduct entity by IDs.
+func (_u *GroupUpdate) AddPaymentProductIDs(ids ...int64) *GroupUpdate {
+	_u.mutation.AddPaymentProductIDs(ids...)
+	return _u
+}
+
+// AddPaymentProducts adds the "payment_products" edges to the PaymentProduct entity.
+func (_u *GroupUpdate) AddPaymentProducts(v ...*PaymentProduct) *GroupUpdate {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddPaymentProductIDs(ids...)
+}
+
+// AddPaymentOrdersGrantGroupIDs adds the "payment_orders_grant_group" edge to the PaymentOrder entity by IDs.
+func (_u *GroupUpdate) AddPaymentOrdersGrantGroupIDs(ids ...int64) *GroupUpdate {
+	_u.mutation.AddPaymentOrdersGrantGroupIDs(ids...)
+	return _u
+}
+
+// AddPaymentOrdersGrantGroup adds the "payment_orders_grant_group" edges to the PaymentOrder entity.
+func (_u *GroupUpdate) AddPaymentOrdersGrantGroup(v ...*PaymentOrder) *GroupUpdate {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddPaymentOrdersGrantGroupIDs(ids...)
+}
+
+// AddEntitlementEventIDs adds the "entitlement_events" edge to the EntitlementEvent entity by IDs.
+func (_u *GroupUpdate) AddEntitlementEventIDs(ids ...int64) *GroupUpdate {
+	_u.mutation.AddEntitlementEventIDs(ids...)
+	return _u
+}
+
+// AddEntitlementEvents adds the "entitlement_events" edges to the EntitlementEvent entity.
+func (_u *GroupUpdate) AddEntitlementEvents(v ...*EntitlementEvent) *GroupUpdate {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddEntitlementEventIDs(ids...)
+}
+
 // Mutation returns the GroupMutation object of the builder.
 func (_u *GroupUpdate) Mutation() *GroupMutation {
 	return _u.mutation
@@ -640,6 +688,69 @@ func (_u *GroupUpdate) RemoveAllowedUsers(v ...*User) *GroupUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveAllowedUserIDs(ids...)
+}
+
+// ClearPaymentProducts clears all "payment_products" edges to the PaymentProduct entity.
+func (_u *GroupUpdate) ClearPaymentProducts() *GroupUpdate {
+	_u.mutation.ClearPaymentProducts()
+	return _u
+}
+
+// RemovePaymentProductIDs removes the "payment_products" edge to PaymentProduct entities by IDs.
+func (_u *GroupUpdate) RemovePaymentProductIDs(ids ...int64) *GroupUpdate {
+	_u.mutation.RemovePaymentProductIDs(ids...)
+	return _u
+}
+
+// RemovePaymentProducts removes "payment_products" edges to PaymentProduct entities.
+func (_u *GroupUpdate) RemovePaymentProducts(v ...*PaymentProduct) *GroupUpdate {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemovePaymentProductIDs(ids...)
+}
+
+// ClearPaymentOrdersGrantGroup clears all "payment_orders_grant_group" edges to the PaymentOrder entity.
+func (_u *GroupUpdate) ClearPaymentOrdersGrantGroup() *GroupUpdate {
+	_u.mutation.ClearPaymentOrdersGrantGroup()
+	return _u
+}
+
+// RemovePaymentOrdersGrantGroupIDs removes the "payment_orders_grant_group" edge to PaymentOrder entities by IDs.
+func (_u *GroupUpdate) RemovePaymentOrdersGrantGroupIDs(ids ...int64) *GroupUpdate {
+	_u.mutation.RemovePaymentOrdersGrantGroupIDs(ids...)
+	return _u
+}
+
+// RemovePaymentOrdersGrantGroup removes "payment_orders_grant_group" edges to PaymentOrder entities.
+func (_u *GroupUpdate) RemovePaymentOrdersGrantGroup(v ...*PaymentOrder) *GroupUpdate {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemovePaymentOrdersGrantGroupIDs(ids...)
+}
+
+// ClearEntitlementEvents clears all "entitlement_events" edges to the EntitlementEvent entity.
+func (_u *GroupUpdate) ClearEntitlementEvents() *GroupUpdate {
+	_u.mutation.ClearEntitlementEvents()
+	return _u
+}
+
+// RemoveEntitlementEventIDs removes the "entitlement_events" edge to EntitlementEvent entities by IDs.
+func (_u *GroupUpdate) RemoveEntitlementEventIDs(ids ...int64) *GroupUpdate {
+	_u.mutation.RemoveEntitlementEventIDs(ids...)
+	return _u
+}
+
+// RemoveEntitlementEvents removes "entitlement_events" edges to EntitlementEvent entities.
+func (_u *GroupUpdate) RemoveEntitlementEvents(v ...*EntitlementEvent) *GroupUpdate {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveEntitlementEventIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -1130,6 +1241,141 @@ func (_u *GroupUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		createE.defaults()
 		_, specE := createE.createSpec()
 		edge.Target.Fields = specE.Fields
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.PaymentProductsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   group.PaymentProductsTable,
+			Columns: []string{group.PaymentProductsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(paymentproduct.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedPaymentProductsIDs(); len(nodes) > 0 && !_u.mutation.PaymentProductsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   group.PaymentProductsTable,
+			Columns: []string{group.PaymentProductsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(paymentproduct.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.PaymentProductsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   group.PaymentProductsTable,
+			Columns: []string{group.PaymentProductsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(paymentproduct.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.PaymentOrdersGrantGroupCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   group.PaymentOrdersGrantGroupTable,
+			Columns: []string{group.PaymentOrdersGrantGroupColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(paymentorder.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedPaymentOrdersGrantGroupIDs(); len(nodes) > 0 && !_u.mutation.PaymentOrdersGrantGroupCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   group.PaymentOrdersGrantGroupTable,
+			Columns: []string{group.PaymentOrdersGrantGroupColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(paymentorder.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.PaymentOrdersGrantGroupIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   group.PaymentOrdersGrantGroupTable,
+			Columns: []string{group.PaymentOrdersGrantGroupColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(paymentorder.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.EntitlementEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   group.EntitlementEventsTable,
+			Columns: []string{group.EntitlementEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(entitlementevent.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedEntitlementEventsIDs(); len(nodes) > 0 && !_u.mutation.EntitlementEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   group.EntitlementEventsTable,
+			Columns: []string{group.EntitlementEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(entitlementevent.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.EntitlementEventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   group.EntitlementEventsTable,
+			Columns: []string{group.EntitlementEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(entitlementevent.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
@@ -1629,6 +1875,51 @@ func (_u *GroupUpdateOne) AddAllowedUsers(v ...*User) *GroupUpdateOne {
 	return _u.AddAllowedUserIDs(ids...)
 }
 
+// AddPaymentProductIDs adds the "payment_products" edge to the PaymentProduct entity by IDs.
+func (_u *GroupUpdateOne) AddPaymentProductIDs(ids ...int64) *GroupUpdateOne {
+	_u.mutation.AddPaymentProductIDs(ids...)
+	return _u
+}
+
+// AddPaymentProducts adds the "payment_products" edges to the PaymentProduct entity.
+func (_u *GroupUpdateOne) AddPaymentProducts(v ...*PaymentProduct) *GroupUpdateOne {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddPaymentProductIDs(ids...)
+}
+
+// AddPaymentOrdersGrantGroupIDs adds the "payment_orders_grant_group" edge to the PaymentOrder entity by IDs.
+func (_u *GroupUpdateOne) AddPaymentOrdersGrantGroupIDs(ids ...int64) *GroupUpdateOne {
+	_u.mutation.AddPaymentOrdersGrantGroupIDs(ids...)
+	return _u
+}
+
+// AddPaymentOrdersGrantGroup adds the "payment_orders_grant_group" edges to the PaymentOrder entity.
+func (_u *GroupUpdateOne) AddPaymentOrdersGrantGroup(v ...*PaymentOrder) *GroupUpdateOne {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddPaymentOrdersGrantGroupIDs(ids...)
+}
+
+// AddEntitlementEventIDs adds the "entitlement_events" edge to the EntitlementEvent entity by IDs.
+func (_u *GroupUpdateOne) AddEntitlementEventIDs(ids ...int64) *GroupUpdateOne {
+	_u.mutation.AddEntitlementEventIDs(ids...)
+	return _u
+}
+
+// AddEntitlementEvents adds the "entitlement_events" edges to the EntitlementEvent entity.
+func (_u *GroupUpdateOne) AddEntitlementEvents(v ...*EntitlementEvent) *GroupUpdateOne {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddEntitlementEventIDs(ids...)
+}
+
 // Mutation returns the GroupMutation object of the builder.
 func (_u *GroupUpdateOne) Mutation() *GroupMutation {
 	return _u.mutation
@@ -1758,6 +2049,69 @@ func (_u *GroupUpdateOne) RemoveAllowedUsers(v ...*User) *GroupUpdateOne {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveAllowedUserIDs(ids...)
+}
+
+// ClearPaymentProducts clears all "payment_products" edges to the PaymentProduct entity.
+func (_u *GroupUpdateOne) ClearPaymentProducts() *GroupUpdateOne {
+	_u.mutation.ClearPaymentProducts()
+	return _u
+}
+
+// RemovePaymentProductIDs removes the "payment_products" edge to PaymentProduct entities by IDs.
+func (_u *GroupUpdateOne) RemovePaymentProductIDs(ids ...int64) *GroupUpdateOne {
+	_u.mutation.RemovePaymentProductIDs(ids...)
+	return _u
+}
+
+// RemovePaymentProducts removes "payment_products" edges to PaymentProduct entities.
+func (_u *GroupUpdateOne) RemovePaymentProducts(v ...*PaymentProduct) *GroupUpdateOne {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemovePaymentProductIDs(ids...)
+}
+
+// ClearPaymentOrdersGrantGroup clears all "payment_orders_grant_group" edges to the PaymentOrder entity.
+func (_u *GroupUpdateOne) ClearPaymentOrdersGrantGroup() *GroupUpdateOne {
+	_u.mutation.ClearPaymentOrdersGrantGroup()
+	return _u
+}
+
+// RemovePaymentOrdersGrantGroupIDs removes the "payment_orders_grant_group" edge to PaymentOrder entities by IDs.
+func (_u *GroupUpdateOne) RemovePaymentOrdersGrantGroupIDs(ids ...int64) *GroupUpdateOne {
+	_u.mutation.RemovePaymentOrdersGrantGroupIDs(ids...)
+	return _u
+}
+
+// RemovePaymentOrdersGrantGroup removes "payment_orders_grant_group" edges to PaymentOrder entities.
+func (_u *GroupUpdateOne) RemovePaymentOrdersGrantGroup(v ...*PaymentOrder) *GroupUpdateOne {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemovePaymentOrdersGrantGroupIDs(ids...)
+}
+
+// ClearEntitlementEvents clears all "entitlement_events" edges to the EntitlementEvent entity.
+func (_u *GroupUpdateOne) ClearEntitlementEvents() *GroupUpdateOne {
+	_u.mutation.ClearEntitlementEvents()
+	return _u
+}
+
+// RemoveEntitlementEventIDs removes the "entitlement_events" edge to EntitlementEvent entities by IDs.
+func (_u *GroupUpdateOne) RemoveEntitlementEventIDs(ids ...int64) *GroupUpdateOne {
+	_u.mutation.RemoveEntitlementEventIDs(ids...)
+	return _u
+}
+
+// RemoveEntitlementEvents removes "entitlement_events" edges to EntitlementEvent entities.
+func (_u *GroupUpdateOne) RemoveEntitlementEvents(v ...*EntitlementEvent) *GroupUpdateOne {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveEntitlementEventIDs(ids...)
 }
 
 // Where appends a list predicates to the GroupUpdate builder.
@@ -2278,6 +2632,141 @@ func (_u *GroupUpdateOne) sqlSave(ctx context.Context) (_node *Group, err error)
 		createE.defaults()
 		_, specE := createE.createSpec()
 		edge.Target.Fields = specE.Fields
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.PaymentProductsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   group.PaymentProductsTable,
+			Columns: []string{group.PaymentProductsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(paymentproduct.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedPaymentProductsIDs(); len(nodes) > 0 && !_u.mutation.PaymentProductsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   group.PaymentProductsTable,
+			Columns: []string{group.PaymentProductsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(paymentproduct.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.PaymentProductsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   group.PaymentProductsTable,
+			Columns: []string{group.PaymentProductsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(paymentproduct.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.PaymentOrdersGrantGroupCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   group.PaymentOrdersGrantGroupTable,
+			Columns: []string{group.PaymentOrdersGrantGroupColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(paymentorder.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedPaymentOrdersGrantGroupIDs(); len(nodes) > 0 && !_u.mutation.PaymentOrdersGrantGroupCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   group.PaymentOrdersGrantGroupTable,
+			Columns: []string{group.PaymentOrdersGrantGroupColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(paymentorder.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.PaymentOrdersGrantGroupIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   group.PaymentOrdersGrantGroupTable,
+			Columns: []string{group.PaymentOrdersGrantGroupColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(paymentorder.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.EntitlementEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   group.EntitlementEventsTable,
+			Columns: []string{group.EntitlementEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(entitlementevent.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedEntitlementEventsIDs(); len(nodes) > 0 && !_u.mutation.EntitlementEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   group.EntitlementEventsTable,
+			Columns: []string{group.EntitlementEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(entitlementevent.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.EntitlementEventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   group.EntitlementEventsTable,
+			Columns: []string{group.EntitlementEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(entitlementevent.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &Group{config: _u.config}

@@ -69,6 +69,12 @@ const (
 	EdgeAccounts = "accounts"
 	// EdgeAllowedUsers holds the string denoting the allowed_users edge name in mutations.
 	EdgeAllowedUsers = "allowed_users"
+	// EdgePaymentProducts holds the string denoting the payment_products edge name in mutations.
+	EdgePaymentProducts = "payment_products"
+	// EdgePaymentOrdersGrantGroup holds the string denoting the payment_orders_grant_group edge name in mutations.
+	EdgePaymentOrdersGrantGroup = "payment_orders_grant_group"
+	// EdgeEntitlementEvents holds the string denoting the entitlement_events edge name in mutations.
+	EdgeEntitlementEvents = "entitlement_events"
 	// EdgeAccountGroups holds the string denoting the account_groups edge name in mutations.
 	EdgeAccountGroups = "account_groups"
 	// EdgeUserAllowedGroups holds the string denoting the user_allowed_groups edge name in mutations.
@@ -113,6 +119,27 @@ const (
 	// AllowedUsersInverseTable is the table name for the User entity.
 	// It exists in this package in order to avoid circular dependency with the "user" package.
 	AllowedUsersInverseTable = "users"
+	// PaymentProductsTable is the table that holds the payment_products relation/edge.
+	PaymentProductsTable = "payment_products"
+	// PaymentProductsInverseTable is the table name for the PaymentProduct entity.
+	// It exists in this package in order to avoid circular dependency with the "paymentproduct" package.
+	PaymentProductsInverseTable = "payment_products"
+	// PaymentProductsColumn is the table column denoting the payment_products relation/edge.
+	PaymentProductsColumn = "group_id"
+	// PaymentOrdersGrantGroupTable is the table that holds the payment_orders_grant_group relation/edge.
+	PaymentOrdersGrantGroupTable = "payment_orders"
+	// PaymentOrdersGrantGroupInverseTable is the table name for the PaymentOrder entity.
+	// It exists in this package in order to avoid circular dependency with the "paymentorder" package.
+	PaymentOrdersGrantGroupInverseTable = "payment_orders"
+	// PaymentOrdersGrantGroupColumn is the table column denoting the payment_orders_grant_group relation/edge.
+	PaymentOrdersGrantGroupColumn = "grant_group_id"
+	// EntitlementEventsTable is the table that holds the entitlement_events relation/edge.
+	EntitlementEventsTable = "entitlement_events"
+	// EntitlementEventsInverseTable is the table name for the EntitlementEvent entity.
+	// It exists in this package in order to avoid circular dependency with the "entitlementevent" package.
+	EntitlementEventsInverseTable = "entitlement_events"
+	// EntitlementEventsColumn is the table column denoting the entitlement_events relation/edge.
+	EntitlementEventsColumn = "group_id"
 	// AccountGroupsTable is the table that holds the account_groups relation/edge.
 	AccountGroupsTable = "account_groups"
 	// AccountGroupsInverseTable is the table name for the AccountGroup entity.
@@ -406,6 +433,48 @@ func ByAllowedUsers(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
+// ByPaymentProductsCount orders the results by payment_products count.
+func ByPaymentProductsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newPaymentProductsStep(), opts...)
+	}
+}
+
+// ByPaymentProducts orders the results by payment_products terms.
+func ByPaymentProducts(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newPaymentProductsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByPaymentOrdersGrantGroupCount orders the results by payment_orders_grant_group count.
+func ByPaymentOrdersGrantGroupCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newPaymentOrdersGrantGroupStep(), opts...)
+	}
+}
+
+// ByPaymentOrdersGrantGroup orders the results by payment_orders_grant_group terms.
+func ByPaymentOrdersGrantGroup(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newPaymentOrdersGrantGroupStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByEntitlementEventsCount orders the results by entitlement_events count.
+func ByEntitlementEventsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newEntitlementEventsStep(), opts...)
+	}
+}
+
+// ByEntitlementEvents orders the results by entitlement_events terms.
+func ByEntitlementEvents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newEntitlementEventsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByAccountGroupsCount orders the results by account_groups count.
 func ByAccountGroupsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -473,6 +542,27 @@ func newAllowedUsersStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(AllowedUsersInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2M, true, AllowedUsersTable, AllowedUsersPrimaryKey...),
+	)
+}
+func newPaymentProductsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(PaymentProductsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, PaymentProductsTable, PaymentProductsColumn),
+	)
+}
+func newPaymentOrdersGrantGroupStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(PaymentOrdersGrantGroupInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, PaymentOrdersGrantGroupTable, PaymentOrdersGrantGroupColumn),
+	)
+}
+func newEntitlementEventsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(EntitlementEventsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, EntitlementEventsTable, EntitlementEventsColumn),
 	)
 }
 func newAccountGroupsStep() *sqlgraph.Step {

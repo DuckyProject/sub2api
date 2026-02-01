@@ -13,7 +13,9 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/Wei-Shaw/sub2api/ent/announcementread"
 	"github.com/Wei-Shaw/sub2api/ent/apikey"
+	"github.com/Wei-Shaw/sub2api/ent/entitlementevent"
 	"github.com/Wei-Shaw/sub2api/ent/group"
+	"github.com/Wei-Shaw/sub2api/ent/paymentorder"
 	"github.com/Wei-Shaw/sub2api/ent/predicate"
 	"github.com/Wei-Shaw/sub2api/ent/promocodeusage"
 	"github.com/Wei-Shaw/sub2api/ent/redeemcode"
@@ -377,6 +379,51 @@ func (_u *UserUpdate) AddPromoCodeUsages(v ...*PromoCodeUsage) *UserUpdate {
 	return _u.AddPromoCodeUsageIDs(ids...)
 }
 
+// AddPaymentOrderIDs adds the "payment_orders" edge to the PaymentOrder entity by IDs.
+func (_u *UserUpdate) AddPaymentOrderIDs(ids ...int64) *UserUpdate {
+	_u.mutation.AddPaymentOrderIDs(ids...)
+	return _u
+}
+
+// AddPaymentOrders adds the "payment_orders" edges to the PaymentOrder entity.
+func (_u *UserUpdate) AddPaymentOrders(v ...*PaymentOrder) *UserUpdate {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddPaymentOrderIDs(ids...)
+}
+
+// AddEntitlementEventIDs adds the "entitlement_events" edge to the EntitlementEvent entity by IDs.
+func (_u *UserUpdate) AddEntitlementEventIDs(ids ...int64) *UserUpdate {
+	_u.mutation.AddEntitlementEventIDs(ids...)
+	return _u
+}
+
+// AddEntitlementEvents adds the "entitlement_events" edges to the EntitlementEvent entity.
+func (_u *UserUpdate) AddEntitlementEvents(v ...*EntitlementEvent) *UserUpdate {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddEntitlementEventIDs(ids...)
+}
+
+// AddEntitlementEventsActorUserIDs adds the "entitlement_events_actor_user" edge to the EntitlementEvent entity by IDs.
+func (_u *UserUpdate) AddEntitlementEventsActorUserIDs(ids ...int64) *UserUpdate {
+	_u.mutation.AddEntitlementEventsActorUserIDs(ids...)
+	return _u
+}
+
+// AddEntitlementEventsActorUser adds the "entitlement_events_actor_user" edges to the EntitlementEvent entity.
+func (_u *UserUpdate) AddEntitlementEventsActorUser(v ...*EntitlementEvent) *UserUpdate {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddEntitlementEventsActorUserIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (_u *UserUpdate) Mutation() *UserMutation {
 	return _u.mutation
@@ -569,6 +616,69 @@ func (_u *UserUpdate) RemovePromoCodeUsages(v ...*PromoCodeUsage) *UserUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.RemovePromoCodeUsageIDs(ids...)
+}
+
+// ClearPaymentOrders clears all "payment_orders" edges to the PaymentOrder entity.
+func (_u *UserUpdate) ClearPaymentOrders() *UserUpdate {
+	_u.mutation.ClearPaymentOrders()
+	return _u
+}
+
+// RemovePaymentOrderIDs removes the "payment_orders" edge to PaymentOrder entities by IDs.
+func (_u *UserUpdate) RemovePaymentOrderIDs(ids ...int64) *UserUpdate {
+	_u.mutation.RemovePaymentOrderIDs(ids...)
+	return _u
+}
+
+// RemovePaymentOrders removes "payment_orders" edges to PaymentOrder entities.
+func (_u *UserUpdate) RemovePaymentOrders(v ...*PaymentOrder) *UserUpdate {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemovePaymentOrderIDs(ids...)
+}
+
+// ClearEntitlementEvents clears all "entitlement_events" edges to the EntitlementEvent entity.
+func (_u *UserUpdate) ClearEntitlementEvents() *UserUpdate {
+	_u.mutation.ClearEntitlementEvents()
+	return _u
+}
+
+// RemoveEntitlementEventIDs removes the "entitlement_events" edge to EntitlementEvent entities by IDs.
+func (_u *UserUpdate) RemoveEntitlementEventIDs(ids ...int64) *UserUpdate {
+	_u.mutation.RemoveEntitlementEventIDs(ids...)
+	return _u
+}
+
+// RemoveEntitlementEvents removes "entitlement_events" edges to EntitlementEvent entities.
+func (_u *UserUpdate) RemoveEntitlementEvents(v ...*EntitlementEvent) *UserUpdate {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveEntitlementEventIDs(ids...)
+}
+
+// ClearEntitlementEventsActorUser clears all "entitlement_events_actor_user" edges to the EntitlementEvent entity.
+func (_u *UserUpdate) ClearEntitlementEventsActorUser() *UserUpdate {
+	_u.mutation.ClearEntitlementEventsActorUser()
+	return _u
+}
+
+// RemoveEntitlementEventsActorUserIDs removes the "entitlement_events_actor_user" edge to EntitlementEvent entities by IDs.
+func (_u *UserUpdate) RemoveEntitlementEventsActorUserIDs(ids ...int64) *UserUpdate {
+	_u.mutation.RemoveEntitlementEventsActorUserIDs(ids...)
+	return _u
+}
+
+// RemoveEntitlementEventsActorUser removes "entitlement_events_actor_user" edges to EntitlementEvent entities.
+func (_u *UserUpdate) RemoveEntitlementEventsActorUser(v ...*EntitlementEvent) *UserUpdate {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveEntitlementEventsActorUserIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -1126,6 +1236,141 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.PaymentOrdersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PaymentOrdersTable,
+			Columns: []string{user.PaymentOrdersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(paymentorder.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedPaymentOrdersIDs(); len(nodes) > 0 && !_u.mutation.PaymentOrdersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PaymentOrdersTable,
+			Columns: []string{user.PaymentOrdersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(paymentorder.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.PaymentOrdersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PaymentOrdersTable,
+			Columns: []string{user.PaymentOrdersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(paymentorder.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.EntitlementEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.EntitlementEventsTable,
+			Columns: []string{user.EntitlementEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(entitlementevent.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedEntitlementEventsIDs(); len(nodes) > 0 && !_u.mutation.EntitlementEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.EntitlementEventsTable,
+			Columns: []string{user.EntitlementEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(entitlementevent.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.EntitlementEventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.EntitlementEventsTable,
+			Columns: []string{user.EntitlementEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(entitlementevent.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.EntitlementEventsActorUserCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.EntitlementEventsActorUserTable,
+			Columns: []string{user.EntitlementEventsActorUserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(entitlementevent.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedEntitlementEventsActorUserIDs(); len(nodes) > 0 && !_u.mutation.EntitlementEventsActorUserCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.EntitlementEventsActorUserTable,
+			Columns: []string{user.EntitlementEventsActorUserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(entitlementevent.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.EntitlementEventsActorUserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.EntitlementEventsActorUserTable,
+			Columns: []string{user.EntitlementEventsActorUserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(entitlementevent.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{user.Label}
@@ -1487,6 +1732,51 @@ func (_u *UserUpdateOne) AddPromoCodeUsages(v ...*PromoCodeUsage) *UserUpdateOne
 	return _u.AddPromoCodeUsageIDs(ids...)
 }
 
+// AddPaymentOrderIDs adds the "payment_orders" edge to the PaymentOrder entity by IDs.
+func (_u *UserUpdateOne) AddPaymentOrderIDs(ids ...int64) *UserUpdateOne {
+	_u.mutation.AddPaymentOrderIDs(ids...)
+	return _u
+}
+
+// AddPaymentOrders adds the "payment_orders" edges to the PaymentOrder entity.
+func (_u *UserUpdateOne) AddPaymentOrders(v ...*PaymentOrder) *UserUpdateOne {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddPaymentOrderIDs(ids...)
+}
+
+// AddEntitlementEventIDs adds the "entitlement_events" edge to the EntitlementEvent entity by IDs.
+func (_u *UserUpdateOne) AddEntitlementEventIDs(ids ...int64) *UserUpdateOne {
+	_u.mutation.AddEntitlementEventIDs(ids...)
+	return _u
+}
+
+// AddEntitlementEvents adds the "entitlement_events" edges to the EntitlementEvent entity.
+func (_u *UserUpdateOne) AddEntitlementEvents(v ...*EntitlementEvent) *UserUpdateOne {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddEntitlementEventIDs(ids...)
+}
+
+// AddEntitlementEventsActorUserIDs adds the "entitlement_events_actor_user" edge to the EntitlementEvent entity by IDs.
+func (_u *UserUpdateOne) AddEntitlementEventsActorUserIDs(ids ...int64) *UserUpdateOne {
+	_u.mutation.AddEntitlementEventsActorUserIDs(ids...)
+	return _u
+}
+
+// AddEntitlementEventsActorUser adds the "entitlement_events_actor_user" edges to the EntitlementEvent entity.
+func (_u *UserUpdateOne) AddEntitlementEventsActorUser(v ...*EntitlementEvent) *UserUpdateOne {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddEntitlementEventsActorUserIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (_u *UserUpdateOne) Mutation() *UserMutation {
 	return _u.mutation
@@ -1679,6 +1969,69 @@ func (_u *UserUpdateOne) RemovePromoCodeUsages(v ...*PromoCodeUsage) *UserUpdate
 		ids[i] = v[i].ID
 	}
 	return _u.RemovePromoCodeUsageIDs(ids...)
+}
+
+// ClearPaymentOrders clears all "payment_orders" edges to the PaymentOrder entity.
+func (_u *UserUpdateOne) ClearPaymentOrders() *UserUpdateOne {
+	_u.mutation.ClearPaymentOrders()
+	return _u
+}
+
+// RemovePaymentOrderIDs removes the "payment_orders" edge to PaymentOrder entities by IDs.
+func (_u *UserUpdateOne) RemovePaymentOrderIDs(ids ...int64) *UserUpdateOne {
+	_u.mutation.RemovePaymentOrderIDs(ids...)
+	return _u
+}
+
+// RemovePaymentOrders removes "payment_orders" edges to PaymentOrder entities.
+func (_u *UserUpdateOne) RemovePaymentOrders(v ...*PaymentOrder) *UserUpdateOne {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemovePaymentOrderIDs(ids...)
+}
+
+// ClearEntitlementEvents clears all "entitlement_events" edges to the EntitlementEvent entity.
+func (_u *UserUpdateOne) ClearEntitlementEvents() *UserUpdateOne {
+	_u.mutation.ClearEntitlementEvents()
+	return _u
+}
+
+// RemoveEntitlementEventIDs removes the "entitlement_events" edge to EntitlementEvent entities by IDs.
+func (_u *UserUpdateOne) RemoveEntitlementEventIDs(ids ...int64) *UserUpdateOne {
+	_u.mutation.RemoveEntitlementEventIDs(ids...)
+	return _u
+}
+
+// RemoveEntitlementEvents removes "entitlement_events" edges to EntitlementEvent entities.
+func (_u *UserUpdateOne) RemoveEntitlementEvents(v ...*EntitlementEvent) *UserUpdateOne {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveEntitlementEventIDs(ids...)
+}
+
+// ClearEntitlementEventsActorUser clears all "entitlement_events_actor_user" edges to the EntitlementEvent entity.
+func (_u *UserUpdateOne) ClearEntitlementEventsActorUser() *UserUpdateOne {
+	_u.mutation.ClearEntitlementEventsActorUser()
+	return _u
+}
+
+// RemoveEntitlementEventsActorUserIDs removes the "entitlement_events_actor_user" edge to EntitlementEvent entities by IDs.
+func (_u *UserUpdateOne) RemoveEntitlementEventsActorUserIDs(ids ...int64) *UserUpdateOne {
+	_u.mutation.RemoveEntitlementEventsActorUserIDs(ids...)
+	return _u
+}
+
+// RemoveEntitlementEventsActorUser removes "entitlement_events_actor_user" edges to EntitlementEvent entities.
+func (_u *UserUpdateOne) RemoveEntitlementEventsActorUser(v ...*EntitlementEvent) *UserUpdateOne {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveEntitlementEventsActorUserIDs(ids...)
 }
 
 // Where appends a list predicates to the UserUpdate builder.
@@ -2259,6 +2612,141 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(promocodeusage.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.PaymentOrdersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PaymentOrdersTable,
+			Columns: []string{user.PaymentOrdersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(paymentorder.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedPaymentOrdersIDs(); len(nodes) > 0 && !_u.mutation.PaymentOrdersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PaymentOrdersTable,
+			Columns: []string{user.PaymentOrdersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(paymentorder.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.PaymentOrdersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PaymentOrdersTable,
+			Columns: []string{user.PaymentOrdersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(paymentorder.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.EntitlementEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.EntitlementEventsTable,
+			Columns: []string{user.EntitlementEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(entitlementevent.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedEntitlementEventsIDs(); len(nodes) > 0 && !_u.mutation.EntitlementEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.EntitlementEventsTable,
+			Columns: []string{user.EntitlementEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(entitlementevent.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.EntitlementEventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.EntitlementEventsTable,
+			Columns: []string{user.EntitlementEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(entitlementevent.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.EntitlementEventsActorUserCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.EntitlementEventsActorUserTable,
+			Columns: []string{user.EntitlementEventsActorUserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(entitlementevent.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedEntitlementEventsActorUserIDs(); len(nodes) > 0 && !_u.mutation.EntitlementEventsActorUserCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.EntitlementEventsActorUserTable,
+			Columns: []string{user.EntitlementEventsActorUserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(entitlementevent.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.EntitlementEventsActorUserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.EntitlementEventsActorUserTable,
+			Columns: []string{user.EntitlementEventsActorUserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(entitlementevent.FieldID, field.TypeInt64),
 			},
 		}
 		for _, k := range nodes {

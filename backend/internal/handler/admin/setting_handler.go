@@ -75,6 +75,18 @@ func (h *SettingHandler) GetSettings(c *gin.Context) {
 		HideCcsImportButton:                  settings.HideCcsImportButton,
 		PurchaseSubscriptionEnabled:          settings.PurchaseSubscriptionEnabled,
 		PurchaseSubscriptionURL:              settings.PurchaseSubscriptionURL,
+		PurchaseSubscriptionMode:             settings.PurchaseSubscriptionMode,
+		PaymentEnabled:                       settings.PaymentEnabled,
+		PaymentEpayEnabled:                   settings.PaymentEpayEnabled,
+		PaymentEpayGatewayURL:                settings.PaymentEpayGatewayURL,
+		PaymentEpayPID:                       settings.PaymentEpayPID,
+		PaymentEpayKeyConfigured:             settings.PaymentEpayKeyConfigured,
+		PaymentTokenPayEnabled:               settings.PaymentTokenPayEnabled,
+		PaymentTokenPayGatewayURL:            settings.PaymentTokenPayGatewayURL,
+		PaymentTokenPayMerchantID:            settings.PaymentTokenPayMerchantID,
+		PaymentTokenPayKeyConfigured:         settings.PaymentTokenPayKeyConfigured,
+		PaymentBalanceExchangeRate:           settings.PaymentBalanceExchangeRate,
+		PublicBaseURL:                        settings.PublicBaseURL,
 		DefaultConcurrency:                   settings.DefaultConcurrency,
 		DefaultBalance:                       settings.DefaultBalance,
 		EnableModelFallback:                  settings.EnableModelFallback,
@@ -131,6 +143,20 @@ type UpdateSettingsRequest struct {
 	HideCcsImportButton         bool    `json:"hide_ccs_import_button"`
 	PurchaseSubscriptionEnabled *bool   `json:"purchase_subscription_enabled"`
 	PurchaseSubscriptionURL     *string `json:"purchase_subscription_url"`
+	PurchaseSubscriptionMode    *string `json:"purchase_subscription_mode"`
+
+	// 支付设置
+	PaymentEnabled               *bool    `json:"payment_enabled"`
+	PaymentEpayEnabled           *bool    `json:"payment_epay_enabled"`
+	PaymentEpayGatewayURL        *string  `json:"payment_epay_gateway_url"`
+	PaymentEpayPID               *string  `json:"payment_epay_pid"`
+	PaymentEpayKey               *string  `json:"payment_epay_key"`
+	PaymentTokenPayEnabled       *bool    `json:"payment_tokenpay_enabled"`
+	PaymentTokenPayGatewayURL    *string  `json:"payment_tokenpay_gateway_url"`
+	PaymentTokenPayMerchantID    *string  `json:"payment_tokenpay_merchant_id"`
+	PaymentTokenPayKey           *string  `json:"payment_tokenpay_key"`
+	PaymentBalanceExchangeRate   *float64 `json:"payment_balance_exchange_rate"`
+	PublicBaseURL                *string  `json:"public_base_url"`
 
 	// 默认配置
 	DefaultConcurrency int     `json:"default_concurrency"`
@@ -246,21 +272,54 @@ func (h *SettingHandler) UpdateSettings(c *gin.Context) {
 		}
 	}
 
-	// “购买订阅”页面配置验证
+	// “购买订阅”页面配置验证（兼容旧 enabled/url；新增 mode）
+	purchaseMode := strings.TrimSpace(previousSettings.PurchaseSubscriptionMode)
+	if purchaseMode == "" {
+		// 旧数据兼容：默认按旧逻辑推断
+		if previousSettings.PurchaseSubscriptionEnabled {
+			purchaseMode = "iframe"
+		} else {
+			purchaseMode = "disabled"
+		}
+	}
+	if req.PurchaseSubscriptionMode != nil {
+		purchaseMode = strings.ToLower(strings.TrimSpace(*req.PurchaseSubscriptionMode))
+	}
+
+	switch purchaseMode {
+	case "disabled", "iframe", "native":
+		// ok
+	default:
+		response.BadRequest(c, "purchase_subscription_mode must be one of: disabled, iframe, native")
+		return
+	}
+
 	purchaseEnabled := previousSettings.PurchaseSubscriptionEnabled
 	if req.PurchaseSubscriptionEnabled != nil {
 		purchaseEnabled = *req.PurchaseSubscriptionEnabled
 	}
+
 	purchaseURL := previousSettings.PurchaseSubscriptionURL
 	if req.PurchaseSubscriptionURL != nil {
 		purchaseURL = strings.TrimSpace(*req.PurchaseSubscriptionURL)
 	}
 
-	// - 启用时要求 URL 合法且非空
-	// - 禁用时允许为空；若提供了 URL 也做基本校验，避免误配置
-	if purchaseEnabled {
+	// mode 的权威来源是 purchase_subscription_mode；enabled 仅用于兼容旧前端/旧逻辑。
+	effectivePurchaseEnabled := purchaseEnabled
+	if purchaseMode == "disabled" {
+		effectivePurchaseEnabled = false
+	}
+	if purchaseMode == "iframe" {
+		effectivePurchaseEnabled = true
+	}
+	if purchaseMode == "native" {
+		effectivePurchaseEnabled = true
+	}
+
+	// mode=iframe 时要求 URL 合法且非空
+	if purchaseMode == "iframe" {
 		if purchaseURL == "" {
-			response.BadRequest(c, "Purchase Subscription URL is required when enabled")
+			response.BadRequest(c, "Purchase Subscription URL is required when mode=iframe")
 			return
 		}
 		if err := config.ValidateAbsoluteHTTPURL(purchaseURL); err != nil {
@@ -268,8 +327,82 @@ func (h *SettingHandler) UpdateSettings(c *gin.Context) {
 			return
 		}
 	} else if purchaseURL != "" {
+		// 非 iframe 时 URL 可留空，但若提供了也做基本校验，避免误配置
 		if err := config.ValidateAbsoluteHTTPURL(purchaseURL); err != nil {
 			response.BadRequest(c, "Purchase Subscription URL must be an absolute http(s) URL")
+			return
+		}
+	}
+
+	// 支付设置校验（留空保留当前值）
+	paymentEnabled := previousSettings.PaymentEnabled
+	if req.PaymentEnabled != nil {
+		paymentEnabled = *req.PaymentEnabled
+	}
+
+	paymentEpayEnabled := previousSettings.PaymentEpayEnabled
+	if req.PaymentEpayEnabled != nil {
+		paymentEpayEnabled = *req.PaymentEpayEnabled
+	}
+	paymentEpayGatewayURL := strings.TrimSpace(previousSettings.PaymentEpayGatewayURL)
+	if req.PaymentEpayGatewayURL != nil {
+		paymentEpayGatewayURL = strings.TrimSpace(*req.PaymentEpayGatewayURL)
+	}
+	paymentEpayPID := strings.TrimSpace(previousSettings.PaymentEpayPID)
+	if req.PaymentEpayPID != nil {
+		paymentEpayPID = strings.TrimSpace(*req.PaymentEpayPID)
+	}
+	paymentEpayKey := strings.TrimSpace(previousSettings.PaymentEpayKey)
+	if req.PaymentEpayKey != nil {
+		if strings.TrimSpace(*req.PaymentEpayKey) != "" {
+			paymentEpayKey = strings.TrimSpace(*req.PaymentEpayKey)
+		}
+	}
+
+	paymentTokenPayEnabled := previousSettings.PaymentTokenPayEnabled
+	if req.PaymentTokenPayEnabled != nil {
+		paymentTokenPayEnabled = *req.PaymentTokenPayEnabled
+	}
+	paymentTokenPayGatewayURL := strings.TrimSpace(previousSettings.PaymentTokenPayGatewayURL)
+	if req.PaymentTokenPayGatewayURL != nil {
+		paymentTokenPayGatewayURL = strings.TrimSpace(*req.PaymentTokenPayGatewayURL)
+	}
+	paymentTokenPayMerchantID := strings.TrimSpace(previousSettings.PaymentTokenPayMerchantID)
+	if req.PaymentTokenPayMerchantID != nil {
+		paymentTokenPayMerchantID = strings.TrimSpace(*req.PaymentTokenPayMerchantID)
+	}
+	paymentTokenPayKey := strings.TrimSpace(previousSettings.PaymentTokenPayKey)
+	if req.PaymentTokenPayKey != nil {
+		if strings.TrimSpace(*req.PaymentTokenPayKey) != "" {
+			paymentTokenPayKey = strings.TrimSpace(*req.PaymentTokenPayKey)
+		}
+	}
+
+	paymentBalanceExchangeRate := previousSettings.PaymentBalanceExchangeRate
+	if req.PaymentBalanceExchangeRate != nil {
+		paymentBalanceExchangeRate = *req.PaymentBalanceExchangeRate
+	}
+	if paymentBalanceExchangeRate <= 0 {
+		paymentBalanceExchangeRate = 1
+	}
+
+	publicBaseURL := strings.TrimSpace(previousSettings.PublicBaseURL)
+	if req.PublicBaseURL != nil {
+		publicBaseURL = strings.TrimSpace(*req.PublicBaseURL)
+	}
+	if publicBaseURL != "" {
+		if err := config.ValidateAbsoluteHTTPURL(publicBaseURL); err != nil {
+			response.BadRequest(c, "public_base_url must be an absolute http(s) URL")
+			return
+		}
+	}
+
+	// 当 payment_enabled=true 时，要求至少启用一个 provider，且其字段齐全
+	if paymentEnabled {
+		epok := paymentEpayEnabled && paymentEpayGatewayURL != "" && paymentEpayPID != "" && paymentEpayKey != ""
+		tpok := paymentTokenPayEnabled && paymentTokenPayGatewayURL != "" && paymentTokenPayMerchantID != "" && paymentTokenPayKey != ""
+		if !epok && !tpok {
+			response.BadRequest(c, "When payment is enabled, at least one provider must be fully configured")
 			return
 		}
 	}
@@ -314,8 +447,20 @@ func (h *SettingHandler) UpdateSettings(c *gin.Context) {
 		DocURL:                      req.DocURL,
 		HomeContent:                 req.HomeContent,
 		HideCcsImportButton:         req.HideCcsImportButton,
-		PurchaseSubscriptionEnabled: purchaseEnabled,
+		PurchaseSubscriptionEnabled: effectivePurchaseEnabled,
 		PurchaseSubscriptionURL:     purchaseURL,
+		PurchaseSubscriptionMode:    purchaseMode,
+		PaymentEnabled:              paymentEnabled,
+		PaymentEpayEnabled:          paymentEpayEnabled,
+		PaymentEpayGatewayURL:       paymentEpayGatewayURL,
+		PaymentEpayPID:              paymentEpayPID,
+		PaymentEpayKey:              paymentEpayKey,
+		PaymentTokenPayEnabled:      paymentTokenPayEnabled,
+		PaymentTokenPayGatewayURL:   paymentTokenPayGatewayURL,
+		PaymentTokenPayMerchantID:   paymentTokenPayMerchantID,
+		PaymentTokenPayKey:          paymentTokenPayKey,
+		PaymentBalanceExchangeRate:  paymentBalanceExchangeRate,
+		PublicBaseURL:               publicBaseURL,
 		DefaultConcurrency:          req.DefaultConcurrency,
 		DefaultBalance:              req.DefaultBalance,
 		EnableModelFallback:         req.EnableModelFallback,
@@ -396,6 +541,18 @@ func (h *SettingHandler) UpdateSettings(c *gin.Context) {
 		HideCcsImportButton:                  updatedSettings.HideCcsImportButton,
 		PurchaseSubscriptionEnabled:          updatedSettings.PurchaseSubscriptionEnabled,
 		PurchaseSubscriptionURL:              updatedSettings.PurchaseSubscriptionURL,
+		PurchaseSubscriptionMode:             updatedSettings.PurchaseSubscriptionMode,
+		PaymentEnabled:                       updatedSettings.PaymentEnabled,
+		PaymentEpayEnabled:                   updatedSettings.PaymentEpayEnabled,
+		PaymentEpayGatewayURL:                updatedSettings.PaymentEpayGatewayURL,
+		PaymentEpayPID:                       updatedSettings.PaymentEpayPID,
+		PaymentEpayKeyConfigured:             updatedSettings.PaymentEpayKeyConfigured,
+		PaymentTokenPayEnabled:               updatedSettings.PaymentTokenPayEnabled,
+		PaymentTokenPayGatewayURL:            updatedSettings.PaymentTokenPayGatewayURL,
+		PaymentTokenPayMerchantID:            updatedSettings.PaymentTokenPayMerchantID,
+		PaymentTokenPayKeyConfigured:         updatedSettings.PaymentTokenPayKeyConfigured,
+		PaymentBalanceExchangeRate:           updatedSettings.PaymentBalanceExchangeRate,
+		PublicBaseURL:                        updatedSettings.PublicBaseURL,
 		DefaultConcurrency:                   updatedSettings.DefaultConcurrency,
 		DefaultBalance:                       updatedSettings.DefaultBalance,
 		EnableModelFallback:                  updatedSettings.EnableModelFallback,

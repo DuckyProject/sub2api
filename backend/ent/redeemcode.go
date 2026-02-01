@@ -51,9 +51,11 @@ type RedeemCodeEdges struct {
 	User *User `json:"user,omitempty"`
 	// Group holds the value of the group edge.
 	Group *Group `json:"group,omitempty"`
+	// EntitlementEvents holds the value of the entitlement_events edge.
+	EntitlementEvents []*EntitlementEvent `json:"entitlement_events,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // UserOrErr returns the User value or an error if the edge
@@ -76,6 +78,15 @@ func (e RedeemCodeEdges) GroupOrErr() (*Group, error) {
 		return nil, &NotFoundError{label: group.Label}
 	}
 	return nil, &NotLoadedError{edge: "group"}
+}
+
+// EntitlementEventsOrErr returns the EntitlementEvents value or an error if the edge
+// was not loaded in eager-loading.
+func (e RedeemCodeEdges) EntitlementEventsOrErr() ([]*EntitlementEvent, error) {
+	if e.loadedTypes[2] {
+		return e.EntitlementEvents, nil
+	}
+	return nil, &NotLoadedError{edge: "entitlement_events"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -197,6 +208,11 @@ func (_m *RedeemCode) QueryUser() *UserQuery {
 // QueryGroup queries the "group" edge of the RedeemCode entity.
 func (_m *RedeemCode) QueryGroup() *GroupQuery {
 	return NewRedeemCodeClient(_m.config).QueryGroup(_m)
+}
+
+// QueryEntitlementEvents queries the "entitlement_events" edge of the RedeemCode entity.
+func (_m *RedeemCode) QueryEntitlementEvents() *EntitlementEventQuery {
+	return NewRedeemCodeClient(_m.config).QueryEntitlementEvents(_m)
 }
 
 // Update returns a builder for updating this RedeemCode.

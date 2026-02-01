@@ -375,6 +375,65 @@ go generate ./cmd/server
 
 ---
 
+## Payments & Subscription Purchase (Epay / TokenPay)
+
+Sub2API includes a built-in “native purchase page” and a full payment flow (create order → pay → callback verification → automatic fulfillment of subscription/balance). This is designed for self-hosted open-source deployments so users **don’t need to manually insert SQL** into `payment_products`.
+
+### 1) Enable payments (admin)
+
+1. Log in to the admin panel → **Settings**
+2. Configure the following fields (recommended order):
+   - `public_base_url`: your **publicly reachable** site URL, e.g. `https://sub.example.com` (used to build notify/return URLs)
+   - `purchase_subscription_mode`: set to `native`
+   - `purchase_subscription_enabled`: enable
+   - `payment_enabled`: enable
+3. Fully configure at least one provider (otherwise saving settings will be rejected):
+   - **Epay**
+     - `payment_epay_enabled=true`
+     - `payment_epay_gateway_url`: gateway URL (you can set the gateway root; Sub2API will auto-append `submit.php` when needed)
+     - `payment_epay_pid`: merchant PID
+     - `payment_epay_key`: merchant key (MD5)
+   - **TokenPay**
+     - `payment_tokenpay_enabled=true`
+     - `payment_tokenpay_gateway_url`: TokenPay gateway URL
+     - `payment_tokenpay_merchant_id`: merchant id
+     - `payment_tokenpay_key`: merchant key (MD5)
+   - (optional) `payment_balance_exchange_rate`: default “amount → balance” rate used when a balance product has no `exchange_rate`
+4. Notify URLs are automatically generated from `public_base_url`:
+   - `.../api/v1/payments/notify/epay`
+   - `.../api/v1/payments/notify/tokenpay`
+   Return URL:
+   - `.../purchase`
+
+> The notify URL must be reachable from the payment gateway. For local/dev environments, use a reverse proxy / tunnel (ngrok, cloudflared, etc.) and set `public_base_url` accordingly.
+
+### 2) Create payment products (plans/top-ups)
+
+Open admin page: `/admin/payment-products` (sidebar: **Payment Products**)
+
+- **Subscription products** (`kind=subscription`)
+  - `group_id`: choose a subscription-type group (create it in Groups first)
+  - `validity_days`: number of days to add/extend
+  - `price`: plan price
+  - `status`: must be `active` to show up on the user page
+- **Balance products** (`kind=balance`)
+  - Fixed credit: set `credit_balance`
+  - Rate-based credit: leave `credit_balance` empty and set `exchange_rate` (or use global `payment_balance_exchange_rate`)
+  - Custom amount: enable `allow_custom_amount` to let users input the top-up amount on `/purchase` (enforced by min/max range), with optional suggested amount shortcuts
+
+> To stop selling a product: set `status=inactive` (unpublish), or delete it from admin. Historical orders remain, but `payment_orders.product_id` may become `NULL` (grant snapshots are not affected).
+
+Optional: view orders and callback notifications at `/admin/payment-orders` (sidebar: **Payment Orders**).
+
+### 3) User purchase flow (native page)
+
+- Visit `/purchase`
+- Pick a provider (Epay / TokenPay) and a product
+- Create an order to get `pay_url`, open it to pay
+- After payment, click “Refresh order status”; once it becomes `paid/fulfilled`, the entitlement is granted automatically
+
+---
+
 ## Simple Mode
 
 Simple Mode is designed for individual developers or internal teams who want quick access without full SaaS features.

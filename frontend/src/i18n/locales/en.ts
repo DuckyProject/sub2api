@@ -195,6 +195,8 @@ export default {
     users: 'Users',
     groups: 'Groups',
     subscriptions: 'Subscriptions',
+    paymentProducts: 'Payment Products',
+    paymentOrders: 'Payment Orders',
     accounts: 'Accounts',
     proxies: 'Proxies',
     redeemCodes: 'Redeem Codes',
@@ -1096,6 +1098,147 @@ export default {
       validityDaysRequired: 'Please enter a valid number of days (at least 1)',
       revokeConfirm:
         "Are you sure you want to revoke the subscription for '{user}'? This action cannot be undone."
+    },
+
+    payments: {
+      products: {
+        title: 'Payment Products',
+        description: 'Manage purchasable subscription packages and recharge products',
+
+        create: 'Create Product',
+        edit: 'Edit Product',
+        searchPlaceholder: 'Search products...',
+        failedToLoad: 'Failed to load payment products',
+        created: 'Product created',
+        updated: 'Product updated',
+        saveFailed: 'Save failed',
+        actions: {
+          activate: 'Activate',
+          deactivate: 'Deactivate',
+          statusUpdated: 'Status updated',
+          deleteTitle: 'Delete product',
+          deleteConfirm:
+            "Are you sure you want to delete product '{name}'? This cannot be undone (historical orders will remain, but product_id may become NULL).",
+          deleted: 'Product deleted'
+        },
+
+        allKinds: 'All kinds',
+        allStatus: 'All status',
+        kindSubscription: 'Subscription',
+        kindBalance: 'Balance',
+        statusActive: 'Active',
+        statusInactive: 'Inactive',
+
+        subscriptionConfig: 'Subscription configuration',
+        balanceConfig: 'Balance configuration',
+
+        fields: {
+          kind: 'Kind',
+          name: 'Name',
+          description: 'Description (Markdown)',
+          status: 'Status',
+          sortOrder: 'Sort order',
+          currency: 'Currency',
+          price: 'Price',
+          priceHint: 'Input in currency units (we will convert to cents automatically).',
+
+          group: 'Group',
+          groupHint: 'Select a group with subscription billing type',
+          groupSelectPlaceholder: 'Select subscription group',
+          validityDays: 'Validity days',
+
+          allowCustomAmount: 'Allow custom amount',
+          allowCustomAmountHint: 'When enabled, the order amount is provided by user and must be within min/max',
+          minAmount: 'Min amount',
+          maxAmount: 'Max amount',
+          suggestedAmounts: 'Suggested amounts',
+          suggestedAmountsPlaceholder: 'e.g. 10,20,50',
+          suggestedAmountsHint: 'Comma-separated; used for quick selections on frontend (optional)',
+
+          exchangeRate: 'Exchange rate',
+          exchangeRateHint: 'CNY -> balance; if empty, fallback to system payment_balance_exchange_rate (default 1)',
+          creditBalance: 'Fixed credit balance',
+          creditBalanceHint: 'Optional: if set, ignore exchange rate and credit this exact amount'
+        },
+
+        columns: {
+          kind: 'Kind',
+          name: 'Name',
+          status: 'Status',
+          price: 'Price',
+          subscription: 'Subscription',
+          sortOrder: 'Sort',
+          updatedAt: 'Updated',
+          actions: 'Actions'
+        }
+      },
+
+      orders: {
+        title: 'Payment Orders',
+        description: 'View payment orders and callback notifications',
+
+        searchPlaceholder: 'Search order no / trade no / pay url...',
+        failedToLoad: 'Failed to load payment orders',
+        failedToLoadNotifications: 'Failed to load notifications',
+
+        allKinds: 'All kinds',
+        allStatus: 'All status',
+        allProviders: 'All providers',
+
+        kindSubscription: 'Subscription',
+        kindBalance: 'Balance',
+
+        statusCreated: 'Created',
+        statusPaid: 'Paid',
+        statusFulfilled: 'Fulfilled',
+        statusCancelled: 'Cancelled',
+        statusExpired: 'Expired',
+        statusFailed: 'Failed',
+
+        detailTitle: 'Order Details',
+        notificationsTitle: 'Notifications',
+        noNotifications: 'No notifications yet',
+        verified: 'Verified',
+        notVerified: 'Not verified',
+        processed: 'Processed',
+        notProcessed: 'Not processed',
+
+        fields: {
+          orderNo: 'Order No',
+          userId: 'User ID',
+          kind: 'Kind',
+          provider: 'Provider',
+          amount: 'Amount',
+          status: 'Status',
+          createdAt: 'Created At',
+          paidAt: 'Paid At',
+          fulfilledAt: 'Fulfilled At',
+          productId: 'Product ID'
+        },
+
+        columns: {
+          orderNo: 'Order No',
+          userId: 'User ID',
+          kind: 'Kind',
+          provider: 'Provider',
+          providerTradeNo: 'Trade No',
+          amount: 'Amount',
+          status: 'Status',
+          createdAt: 'Created',
+          paidAt: 'Paid',
+          fulfilledAt: 'Fulfilled',
+          actions: 'Actions'
+        },
+
+        actions: {
+          openPayUrl: 'Open pay page',
+          copyOrderNo: 'Copy order no',
+          copyPayUrl: 'Copy pay url',
+          copyRaw: 'Copy raw body',
+          showRaw: 'Show raw',
+          hideRaw: 'Hide raw'
+        }
+      }
     },
 
     // Accounts
@@ -3123,14 +3266,57 @@ export default {
 
   // Purchase Subscription Page
   purchase: {
-    title: 'Purchase Subscription',
-    description: 'Purchase a subscription via the embedded page',
+    title: 'Purchase / Top-up',
+    description: 'Complete purchase via the embedded page',
+    nativeDescription: 'Purchase plans and top up balance via native payment',
     openInNewTab: 'Open in new tab',
     notEnabledTitle: 'Feature not enabled',
     notEnabledDesc: 'The administrator has not enabled the purchase page. Please contact admin.',
     notConfiguredTitle: 'Purchase URL not configured',
     notConfiguredDesc:
-      'The administrator enabled the entry but has not configured a purchase URL. Please contact admin.'
+      'The administrator enabled the entry but has not configured a purchase URL. Please contact admin.',
+
+    paymentNotEnabledTitle: 'Payment not configured',
+    paymentNotEnabledDesc:
+      'The administrator enabled native purchase mode, but payment is not enabled or configured. Please contact admin.',
+    selectPaymentMethod: 'Select payment method',
+    packagesTitle: 'Subscription packages',
+    balanceTitle: 'Balance top-up',
+    tabs: {
+      subscription: 'Subscription',
+      balance: 'Balance'
+    },
+    noProducts: 'No purchasable products',
+    buyNow: 'Buy now',
+    topupNow: 'Top up now',
+    creatingOrder: 'Creating order...',
+    createOrderFailed: 'Failed to create order',
+    orderCreatedTitle: 'Order created',
+    orderNo: 'Order No.',
+    amount: 'Amount',
+    status: 'Status',
+    openPayPage: 'Open payment page',
+    copyPayLink: 'Copy payment link',
+    copied: 'Copied',
+    refreshStatus: 'Refresh order status',
+    refreshing: 'Refreshing...',
+    refreshOrderFailed: 'Failed to refresh order',
+    loadProductsFailed: 'Failed to load products',
+    paidTip: 'After completing payment, click “Refresh order status”. Your balance/subscription will be updated.',
+
+    customAmountTag: 'Custom amount',
+    customAmountLabel: 'Top-up amount',
+    customAmountPlaceholder: 'e.g. 10.00',
+    amountRequired: 'Please enter an amount',
+    invalidAmount: 'Invalid amount format',
+    minMaxHint: 'Range: {min} ~ {max}',
+    minHint: 'Min: {min}',
+    maxHint: 'Max: {max}',
+    amountOutOfRange: 'Amount must be within {min} ~ {max}',
+
+    creditFixedHint: 'Fixed credit: {credit}',
+    creditRateHint: 'Rate {rate}, estimated credit: {credit}',
+    creditRateFallbackHint: 'Estimated credit: using system default exchange rate'
   },
 
   // Announcements Page

@@ -84,8 +84,132 @@ export interface PublicSettings {
   hide_ccs_import_button: boolean
   purchase_subscription_enabled: boolean
   purchase_subscription_url: string
+  purchase_subscription_mode: 'disabled' | 'iframe' | 'native' | string
+  payment_enabled: boolean
+  payment_methods: string[]
   linuxdo_oauth_enabled: boolean
   version: string
+}
+
+// ==================== Payment Types ====================
+
+export interface PaymentProduct {
+  id: number
+  kind: 'subscription' | 'balance' | string
+  name: string
+  description_md: string
+  status: 'active' | 'inactive' | string
+  sort_order: number
+
+  currency: string
+  price_cents: number
+
+  group_id: number | null
+  validity_days: number | null
+  credit_balance: number | null
+
+  allow_custom_amount: boolean
+  min_amount_cents: number | null
+  max_amount_cents: number | null
+  suggested_amounts_cents: number[]
+  exchange_rate: number | null
+
+  created_at: string
+  updated_at: string
+}
+
+export interface PaymentOrder {
+  id: number
+  order_no: string
+  user_id: number
+  kind: string
+  product_id: number | null
+  status: string
+  provider: string
+  currency: string
+  amount_cents: number
+  client_request_id: string | null
+  provider_trade_no: string | null
+  pay_url: string | null
+  expires_at: string | null
+  paid_at: string | null
+  fulfilled_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface PaymentNotification {
+  id: number
+  provider: string
+  event_id: string
+  order_no: string | null
+  provider_trade_no: string | null
+  amount_cents: number | null
+  currency: string | null
+  verified: boolean
+  processed: boolean
+  process_error: string | null
+  raw_body: string
+  received_at: string
+}
+
+export interface CreatePaymentOrderRequest {
+  product_id: number
+  provider: string
+  client_request_id?: string
+  // For balance products with allow_custom_amount=true:
+  // - amount: decimal string like "12.34" (preferred)
+  // - amount_cents: integer cents like 1234
+  amount?: string
+  amount_cents?: number
+}
+
+export interface CreatePaymentOrderResponse {
+  order: PaymentOrder
+}
+
+export interface CreatePaymentProductRequest {
+  kind: 'subscription' | 'balance' | string
+  name: string
+  description_md?: string
+  status?: 'active' | 'inactive' | string
+  sort_order?: number
+
+  currency?: string
+  price_cents?: number
+
+  group_id?: number | null
+  validity_days?: number | null
+
+  credit_balance?: number | null
+
+  allow_custom_amount?: boolean
+  min_amount_cents?: number | null
+  max_amount_cents?: number | null
+  suggested_amounts_cents?: number[]
+  exchange_rate?: number | null
+}
+
+export interface UpdatePaymentProductRequest {
+  kind?: 'subscription' | 'balance' | string
+  name?: string
+  description_md?: string
+  status?: 'active' | 'inactive' | string
+  sort_order?: number
+
+  currency?: string
+  price_cents?: number
+
+  group_id?: number | null
+  validity_days?: number | null
+
+  credit_balance?: number | null
+
+  allow_custom_amount?: boolean
+  min_amount_cents?: number | null
+  max_amount_cents?: number | null
+  suggested_amounts_cents?: number[]
+  exchange_rate?: number | null
 }
 
 export interface AuthResponse {

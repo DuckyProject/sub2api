@@ -24,8 +24,16 @@ type Tx struct {
 	Announcement *AnnouncementClient
 	// AnnouncementRead is the client for interacting with the AnnouncementRead builders.
 	AnnouncementRead *AnnouncementReadClient
+	// EntitlementEvent is the client for interacting with the EntitlementEvent builders.
+	EntitlementEvent *EntitlementEventClient
 	// Group is the client for interacting with the Group builders.
 	Group *GroupClient
+	// PaymentNotification is the client for interacting with the PaymentNotification builders.
+	PaymentNotification *PaymentNotificationClient
+	// PaymentOrder is the client for interacting with the PaymentOrder builders.
+	PaymentOrder *PaymentOrderClient
+	// PaymentProduct is the client for interacting with the PaymentProduct builders.
+	PaymentProduct *PaymentProductClient
 	// PromoCode is the client for interacting with the PromoCode builders.
 	PromoCode *PromoCodeClient
 	// PromoCodeUsage is the client for interacting with the PromoCodeUsage builders.
@@ -186,7 +194,11 @@ func (tx *Tx) init() {
 	tx.AccountGroup = NewAccountGroupClient(tx.config)
 	tx.Announcement = NewAnnouncementClient(tx.config)
 	tx.AnnouncementRead = NewAnnouncementReadClient(tx.config)
+	tx.EntitlementEvent = NewEntitlementEventClient(tx.config)
 	tx.Group = NewGroupClient(tx.config)
+	tx.PaymentNotification = NewPaymentNotificationClient(tx.config)
+	tx.PaymentOrder = NewPaymentOrderClient(tx.config)
+	tx.PaymentProduct = NewPaymentProductClient(tx.config)
 	tx.PromoCode = NewPromoCodeClient(tx.config)
 	tx.PromoCodeUsage = NewPromoCodeUsageClient(tx.config)
 	tx.Proxy = NewProxyClient(tx.config)

@@ -13,7 +13,10 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/Wei-Shaw/sub2api/ent/account"
 	"github.com/Wei-Shaw/sub2api/ent/apikey"
+	"github.com/Wei-Shaw/sub2api/ent/entitlementevent"
 	"github.com/Wei-Shaw/sub2api/ent/group"
+	"github.com/Wei-Shaw/sub2api/ent/paymentorder"
+	"github.com/Wei-Shaw/sub2api/ent/paymentproduct"
 	"github.com/Wei-Shaw/sub2api/ent/redeemcode"
 	"github.com/Wei-Shaw/sub2api/ent/usagelog"
 	"github.com/Wei-Shaw/sub2api/ent/user"
@@ -396,6 +399,51 @@ func (_c *GroupCreate) AddAllowedUsers(v ...*User) *GroupCreate {
 	return _c.AddAllowedUserIDs(ids...)
 }
 
+// AddPaymentProductIDs adds the "payment_products" edge to the PaymentProduct entity by IDs.
+func (_c *GroupCreate) AddPaymentProductIDs(ids ...int64) *GroupCreate {
+	_c.mutation.AddPaymentProductIDs(ids...)
+	return _c
+}
+
+// AddPaymentProducts adds the "payment_products" edges to the PaymentProduct entity.
+func (_c *GroupCreate) AddPaymentProducts(v ...*PaymentProduct) *GroupCreate {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddPaymentProductIDs(ids...)
+}
+
+// AddPaymentOrdersGrantGroupIDs adds the "payment_orders_grant_group" edge to the PaymentOrder entity by IDs.
+func (_c *GroupCreate) AddPaymentOrdersGrantGroupIDs(ids ...int64) *GroupCreate {
+	_c.mutation.AddPaymentOrdersGrantGroupIDs(ids...)
+	return _c
+}
+
+// AddPaymentOrdersGrantGroup adds the "payment_orders_grant_group" edges to the PaymentOrder entity.
+func (_c *GroupCreate) AddPaymentOrdersGrantGroup(v ...*PaymentOrder) *GroupCreate {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddPaymentOrdersGrantGroupIDs(ids...)
+}
+
+// AddEntitlementEventIDs adds the "entitlement_events" edge to the EntitlementEvent entity by IDs.
+func (_c *GroupCreate) AddEntitlementEventIDs(ids ...int64) *GroupCreate {
+	_c.mutation.AddEntitlementEventIDs(ids...)
+	return _c
+}
+
+// AddEntitlementEvents adds the "entitlement_events" edges to the EntitlementEvent entity.
+func (_c *GroupCreate) AddEntitlementEvents(v ...*EntitlementEvent) *GroupCreate {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddEntitlementEventIDs(ids...)
+}
+
 // Mutation returns the GroupMutation object of the builder.
 func (_c *GroupCreate) Mutation() *GroupMutation {
 	return _c.mutation
@@ -750,6 +798,54 @@ func (_c *GroupCreate) createSpec() (*Group, *sqlgraph.CreateSpec) {
 		createE.defaults()
 		_, specE := createE.createSpec()
 		edge.Target.Fields = specE.Fields
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.PaymentProductsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   group.PaymentProductsTable,
+			Columns: []string{group.PaymentProductsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(paymentproduct.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.PaymentOrdersGrantGroupIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   group.PaymentOrdersGrantGroupTable,
+			Columns: []string{group.PaymentOrdersGrantGroupColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(paymentorder.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.EntitlementEventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   group.EntitlementEventsTable,
+			Columns: []string{group.EntitlementEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(entitlementevent.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

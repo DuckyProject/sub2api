@@ -11,6 +11,7 @@ type AdminHandlers struct {
 	Group            *admin.GroupHandler
 	Account          *admin.AccountHandler
 	Announcement     *admin.AnnouncementHandler
+	Payment          *admin.PaymentHandler
 	OAuth            *admin.OAuthHandler
 	OpenAIOAuth      *admin.OpenAIOAuthHandler
 	GeminiOAuth      *admin.GeminiOAuthHandler
@@ -40,6 +41,7 @@ type Handlers struct {
 	OpenAIGateway *OpenAIGatewayHandler
 	Setting       *SettingHandler
 	Totp          *TotpHandler
+	Payment       *PaymentHandler
 }
 
 // BuildInfo contains build-time information

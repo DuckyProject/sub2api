@@ -935,32 +935,45 @@
           </div>
         </div>
 
-        <!-- Purchase Subscription Page -->
+        <!-- Purchase & Payment -->
         <div class="card">
           <div class="border-b border-gray-100 px-6 py-4 dark:border-dark-700">
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
-              {{ t('admin.settings.purchase.title') }}
-            </h2>
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Purchase & Payment</h2>
             <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              {{ t('admin.settings.purchase.description') }}
+              Configure purchase page mode and native payment providers.
             </p>
           </div>
           <div class="space-y-6 p-6">
-            <!-- Enable Toggle -->
+            <!-- Purchase mode -->
+            <div>
+              <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Purchase Page Mode
+              </label>
+              <select v-model="form.purchase_subscription_mode" class="input w-64">
+                <option value="disabled">disabled</option>
+                <option value="iframe">iframe</option>
+                <option value="native">native</option>
+              </select>
+              <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+                disabled=hide entry; iframe=external purchase page; native=in-app purchase.
+              </p>
+            </div>
+
+            <!-- Backward compatible toggle (legacy) -->
             <div class="flex items-center justify-between">
               <div>
                 <label class="font-medium text-gray-900 dark:text-white">{{
                   t('admin.settings.purchase.enabled')
                 }}</label>
                 <p class="text-sm text-gray-500 dark:text-gray-400">
-                  {{ t('admin.settings.purchase.enabledHint') }}
+                  {{ t('admin.settings.purchase.enabledHint') }} (legacy)
                 </p>
               </div>
               <Toggle v-model="form.purchase_subscription_enabled" />
             </div>
 
-            <!-- URL -->
-            <div>
+            <!-- URL (iframe only) -->
+            <div v-if="form.purchase_subscription_mode === 'iframe'">
               <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
                 {{ t('admin.settings.purchase.url') }}
               </label>
@@ -976,6 +989,104 @@
               <p class="mt-2 text-xs text-amber-600 dark:text-amber-400">
                 {{ t('admin.settings.purchase.iframeWarning') }}
               </p>
+            </div>
+
+            <div class="border-t border-gray-100 pt-6 dark:border-dark-700">
+              <h3 class="text-base font-semibold text-gray-900 dark:text-white">Payment</h3>
+              <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                Enable providers and configure credentials. Secrets are not displayed after saving.
+              </p>
+
+              <div class="mt-4 space-y-4">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <label class="font-medium text-gray-900 dark:text-white">payment_enabled</label>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Master switch</p>
+                  </div>
+                  <Toggle v-model="form.payment_enabled" />
+                </div>
+
+                <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div>
+                    <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      payment_balance_exchange_rate
+                    </label>
+                    <input v-model.number="form.payment_balance_exchange_rate" type="number" min="0" step="0.00000001" class="input" />
+                    <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">CNY -> balance</p>
+                  </div>
+                  <div>
+                    <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      public_base_url
+                    </label>
+                    <input v-model="form.public_base_url" type="url" class="input font-mono text-sm" placeholder="https://example.com" />
+                    <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">Optional; used for callback URL building</p>
+                  </div>
+                </div>
+
+                <div class="rounded-lg border border-gray-100 p-4 dark:border-dark-700">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <label class="font-medium text-gray-900 dark:text-white">Epay</label>
+                      <p class="text-sm text-gray-500 dark:text-gray-400">
+                        Configured: {{ form.payment_epay_key_configured ? 'yes' : 'no' }}
+                      </p>
+                    </div>
+                    <Toggle v-model="form.payment_epay_enabled" />
+                  </div>
+                  <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div>
+                      <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        payment_epay_gateway_url
+                      </label>
+                      <input v-model="form.payment_epay_gateway_url" type="url" class="input font-mono text-sm" />
+                    </div>
+                    <div>
+                      <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        payment_epay_pid
+                      </label>
+                      <input v-model="form.payment_epay_pid" type="text" class="input font-mono text-sm" />
+                    </div>
+                    <div class="md:col-span-2">
+                      <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        payment_epay_key (leave blank to keep)
+                      </label>
+                      <input v-model="form.payment_epay_key" type="password" class="input font-mono text-sm" autocomplete="new-password" />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="rounded-lg border border-gray-100 p-4 dark:border-dark-700">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <label class="font-medium text-gray-900 dark:text-white">TokenPay</label>
+                      <p class="text-sm text-gray-500 dark:text-gray-400">
+                        Configured: {{ form.payment_tokenpay_key_configured ? 'yes' : 'no' }}
+                      </p>
+                    </div>
+                    <Toggle v-model="form.payment_tokenpay_enabled" />
+                  </div>
+                  <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div>
+                      <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        payment_tokenpay_gateway_url
+                      </label>
+                      <input v-model="form.payment_tokenpay_gateway_url" type="url" class="input font-mono text-sm" />
+                    </div>
+                    <div>
+                      <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        payment_tokenpay_merchant_id
+                      </label>
+                      <input v-model="form.payment_tokenpay_merchant_id" type="text" class="input font-mono text-sm" />
+                    </div>
+                    <div class="md:col-span-2">
+                      <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        payment_tokenpay_key (leave blank to keep)
+                      </label>
+                      <input v-model="form.payment_tokenpay_key" type="password" class="input font-mono text-sm" autocomplete="new-password" />
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -1109,6 +1220,8 @@ type SettingsForm = SystemSettings & {
   smtp_password: string
   turnstile_secret_key: string
   linuxdo_connect_client_secret: string
+  payment_epay_key: string
+  payment_tokenpay_key: string
 }
 
 const form = reactive<SettingsForm>({
@@ -1130,6 +1243,20 @@ const form = reactive<SettingsForm>({
   hide_ccs_import_button: false,
   purchase_subscription_enabled: false,
   purchase_subscription_url: '',
+  purchase_subscription_mode: 'disabled',
+  payment_enabled: false,
+  payment_epay_enabled: false,
+  payment_epay_gateway_url: '',
+  payment_epay_pid: '',
+  payment_epay_key_configured: false,
+  payment_epay_key: '',
+  payment_tokenpay_enabled: false,
+  payment_tokenpay_gateway_url: '',
+  payment_tokenpay_merchant_id: '',
+  payment_tokenpay_key_configured: false,
+  payment_tokenpay_key: '',
+  payment_balance_exchange_rate: 1,
+  public_base_url: '',
   smtp_host: '',
   smtp_port: 587,
   smtp_username: '',
@@ -1227,6 +1354,8 @@ async function loadSettings() {
     form.smtp_password = ''
     form.turnstile_secret_key = ''
     form.linuxdo_connect_client_secret = ''
+    form.payment_epay_key = ''
+    form.payment_tokenpay_key = ''
   } catch (error: any) {
     appStore.showError(
       t('admin.settings.failedToLoad') + ': ' + (error.message || t('common.unknownError'))
@@ -1257,6 +1386,18 @@ async function saveSettings() {
       hide_ccs_import_button: form.hide_ccs_import_button,
       purchase_subscription_enabled: form.purchase_subscription_enabled,
       purchase_subscription_url: form.purchase_subscription_url,
+      purchase_subscription_mode: form.purchase_subscription_mode,
+      payment_enabled: form.payment_enabled,
+      payment_epay_enabled: form.payment_epay_enabled,
+      payment_epay_gateway_url: form.payment_epay_gateway_url,
+      payment_epay_pid: form.payment_epay_pid,
+      payment_epay_key: form.payment_epay_key || undefined,
+      payment_tokenpay_enabled: form.payment_tokenpay_enabled,
+      payment_tokenpay_gateway_url: form.payment_tokenpay_gateway_url,
+      payment_tokenpay_merchant_id: form.payment_tokenpay_merchant_id,
+      payment_tokenpay_key: form.payment_tokenpay_key || undefined,
+      payment_balance_exchange_rate: form.payment_balance_exchange_rate,
+      public_base_url: form.public_base_url,
       smtp_host: form.smtp_host,
       smtp_port: form.smtp_port,
       smtp_username: form.smtp_username,
@@ -1284,6 +1425,8 @@ async function saveSettings() {
     form.smtp_password = ''
     form.turnstile_secret_key = ''
     form.linuxdo_connect_client_secret = ''
+    form.payment_epay_key = ''
+    form.payment_tokenpay_key = ''
     // Refresh cached public settings so sidebar/header update immediately
     await appStore.fetchPublicSettings(true)
     appStore.showSuccess(t('admin.settings.settingsSaved'))

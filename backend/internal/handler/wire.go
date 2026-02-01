@@ -14,6 +14,7 @@ func ProvideAdminHandlers(
 	groupHandler *admin.GroupHandler,
 	accountHandler *admin.AccountHandler,
 	announcementHandler *admin.AnnouncementHandler,
+	paymentHandler *admin.PaymentHandler,
 	oauthHandler *admin.OAuthHandler,
 	openaiOAuthHandler *admin.OpenAIOAuthHandler,
 	geminiOAuthHandler *admin.GeminiOAuthHandler,
@@ -34,6 +35,7 @@ func ProvideAdminHandlers(
 		Group:            groupHandler,
 		Account:          accountHandler,
 		Announcement:     announcementHandler,
+		Payment:          paymentHandler,
 		OAuth:            oauthHandler,
 		OpenAIOAuth:      openaiOAuthHandler,
 		GeminiOAuth:      geminiOAuthHandler,
@@ -74,6 +76,7 @@ func ProvideHandlers(
 	openaiGatewayHandler *OpenAIGatewayHandler,
 	settingHandler *SettingHandler,
 	totpHandler *TotpHandler,
+	paymentHandler *PaymentHandler,
 ) *Handlers {
 	return &Handlers{
 		Auth:          authHandler,
@@ -88,6 +91,7 @@ func ProvideHandlers(
 		OpenAIGateway: openaiGatewayHandler,
 		Setting:       settingHandler,
 		Totp:          totpHandler,
+		Payment:       paymentHandler,
 	}
 }
 
@@ -104,6 +108,7 @@ var ProviderSet = wire.NewSet(
 	NewGatewayHandler,
 	NewOpenAIGatewayHandler,
 	NewTotpHandler,
+	NewPaymentHandler,
 	ProvideSettingHandler,
 
 	// Admin handlers
@@ -112,6 +117,7 @@ var ProviderSet = wire.NewSet(
 	admin.NewGroupHandler,
 	admin.NewAccountHandler,
 	admin.NewAnnouncementHandler,
+	admin.NewPaymentHandler,
 	admin.NewOAuthHandler,
 	admin.NewOpenAIOAuthHandler,
 	admin.NewGeminiOAuthHandler,

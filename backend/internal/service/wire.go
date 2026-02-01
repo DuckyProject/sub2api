@@ -273,4 +273,7 @@ var ProviderSet = wire.NewSet(
 	NewUserAttributeService,
 	NewUsageCache,
 	NewTotpService,
+	NewPaymentAdminService,
+	ProvidePaymentProviders,
+	NewPaymentService,
 )

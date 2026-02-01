@@ -296,6 +296,84 @@ var (
 			},
 		},
 	}
+	// EntitlementEventsColumns holds the columns for the "entitlement_events" table.
+	EntitlementEventsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "created_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "updated_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "kind", Type: field.TypeString, Size: 20},
+		{Name: "source", Type: field.TypeString, Size: 20},
+		{Name: "validity_days", Type: field.TypeInt, Nullable: true},
+		{Name: "balance_delta", Type: field.TypeFloat64, Nullable: true, SchemaType: map[string]string{"postgres": "decimal(20,8)"}},
+		{Name: "concurrency_delta", Type: field.TypeInt, Nullable: true},
+		{Name: "note", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "group_id", Type: field.TypeInt64, Nullable: true},
+		{Name: "order_id", Type: field.TypeInt64, Nullable: true},
+		{Name: "redeem_code_id", Type: field.TypeInt64, Nullable: true},
+		{Name: "user_id", Type: field.TypeInt64},
+		{Name: "actor_user_id", Type: field.TypeInt64, Nullable: true},
+	}
+	// EntitlementEventsTable holds the schema information for the "entitlement_events" table.
+	EntitlementEventsTable = &schema.Table{
+		Name:       "entitlement_events",
+		Columns:    EntitlementEventsColumns,
+		PrimaryKey: []*schema.Column{EntitlementEventsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "entitlement_events_groups_entitlement_events",
+				Columns:    []*schema.Column{EntitlementEventsColumns[10]},
+				RefColumns: []*schema.Column{GroupsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "entitlement_events_payment_orders_entitlement_events",
+				Columns:    []*schema.Column{EntitlementEventsColumns[11]},
+				RefColumns: []*schema.Column{PaymentOrdersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "entitlement_events_redeem_codes_entitlement_events",
+				Columns:    []*schema.Column{EntitlementEventsColumns[12]},
+				RefColumns: []*schema.Column{RedeemCodesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "entitlement_events_users_entitlement_events",
+				Columns:    []*schema.Column{EntitlementEventsColumns[13]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "entitlement_events_users_entitlement_events_actor_user",
+				Columns:    []*schema.Column{EntitlementEventsColumns[14]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "entitlementevent_user_id",
+				Unique:  false,
+				Columns: []*schema.Column{EntitlementEventsColumns[13]},
+			},
+			{
+				Name:    "entitlementevent_order_id",
+				Unique:  false,
+				Columns: []*schema.Column{EntitlementEventsColumns[11]},
+			},
+			{
+				Name:    "entitlementevent_redeem_code_id",
+				Unique:  false,
+				Columns: []*schema.Column{EntitlementEventsColumns[12]},
+			},
+			{
+				Name:    "entitlementevent_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{EntitlementEventsColumns[1]},
+			},
+		},
+	}
 	// GroupsColumns holds the columns for the "groups" table.
 	GroupsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -351,6 +429,178 @@ var (
 				Name:    "group_deleted_at",
 				Unique:  false,
 				Columns: []*schema.Column{GroupsColumns[3]},
+			},
+		},
+	}
+	// PaymentNotificationsColumns holds the columns for the "payment_notifications" table.
+	PaymentNotificationsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "provider", Type: field.TypeString, Size: 20},
+		{Name: "event_id", Type: field.TypeString},
+		{Name: "order_no", Type: field.TypeString, Nullable: true},
+		{Name: "provider_trade_no", Type: field.TypeString, Nullable: true},
+		{Name: "amount_cents", Type: field.TypeInt64, Nullable: true},
+		{Name: "currency", Type: field.TypeString, Nullable: true, Size: 10},
+		{Name: "verified", Type: field.TypeBool, Default: false},
+		{Name: "processed", Type: field.TypeBool, Default: false},
+		{Name: "process_error", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "raw_body", Type: field.TypeString, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "received_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
+	}
+	// PaymentNotificationsTable holds the schema information for the "payment_notifications" table.
+	PaymentNotificationsTable = &schema.Table{
+		Name:       "payment_notifications",
+		Columns:    PaymentNotificationsColumns,
+		PrimaryKey: []*schema.Column{PaymentNotificationsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "paymentnotification_provider_event_id",
+				Unique:  true,
+				Columns: []*schema.Column{PaymentNotificationsColumns[1], PaymentNotificationsColumns[2]},
+			},
+			{
+				Name:    "paymentnotification_order_no",
+				Unique:  false,
+				Columns: []*schema.Column{PaymentNotificationsColumns[3]},
+			},
+			{
+				Name:    "paymentnotification_provider_trade_no",
+				Unique:  false,
+				Columns: []*schema.Column{PaymentNotificationsColumns[4]},
+			},
+			{
+				Name:    "paymentnotification_received_at",
+				Unique:  false,
+				Columns: []*schema.Column{PaymentNotificationsColumns[11]},
+			},
+		},
+	}
+	// PaymentOrdersColumns holds the columns for the "payment_orders" table.
+	PaymentOrdersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "created_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "updated_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "order_no", Type: field.TypeString, Unique: true},
+		{Name: "kind", Type: field.TypeString, Size: 20},
+		{Name: "status", Type: field.TypeString, Size: 20, Default: "created"},
+		{Name: "provider", Type: field.TypeString, Size: 20, Default: "manual"},
+		{Name: "currency", Type: field.TypeString, Size: 10, Default: "CNY"},
+		{Name: "amount_cents", Type: field.TypeInt64},
+		{Name: "client_request_id", Type: field.TypeString, Nullable: true},
+		{Name: "provider_trade_no", Type: field.TypeString, Nullable: true},
+		{Name: "pay_url", Type: field.TypeString, Nullable: true},
+		{Name: "expires_at", Type: field.TypeTime, Nullable: true, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "paid_at", Type: field.TypeTime, Nullable: true, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "fulfilled_at", Type: field.TypeTime, Nullable: true, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "grant_validity_days", Type: field.TypeInt, Nullable: true},
+		{Name: "grant_credit_balance", Type: field.TypeFloat64, Nullable: true, SchemaType: map[string]string{"postgres": "decimal(20,8)"}},
+		{Name: "notes", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "grant_group_id", Type: field.TypeInt64, Nullable: true},
+		{Name: "product_id", Type: field.TypeInt64, Nullable: true},
+		{Name: "user_id", Type: field.TypeInt64},
+	}
+	// PaymentOrdersTable holds the schema information for the "payment_orders" table.
+	PaymentOrdersTable = &schema.Table{
+		Name:       "payment_orders",
+		Columns:    PaymentOrdersColumns,
+		PrimaryKey: []*schema.Column{PaymentOrdersColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "payment_orders_groups_payment_orders_grant_group",
+				Columns:    []*schema.Column{PaymentOrdersColumns[18]},
+				RefColumns: []*schema.Column{GroupsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "payment_orders_payment_products_orders",
+				Columns:    []*schema.Column{PaymentOrdersColumns[19]},
+				RefColumns: []*schema.Column{PaymentProductsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "payment_orders_users_payment_orders",
+				Columns:    []*schema.Column{PaymentOrdersColumns[20]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "paymentorder_user_id_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{PaymentOrdersColumns[20], PaymentOrdersColumns[1]},
+			},
+			{
+				Name:    "paymentorder_status_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{PaymentOrdersColumns[5], PaymentOrdersColumns[1]},
+			},
+			{
+				Name:    "paymentorder_product_id",
+				Unique:  false,
+				Columns: []*schema.Column{PaymentOrdersColumns[19]},
+			},
+			{
+				Name:    "paymentorder_provider_provider_trade_no",
+				Unique:  true,
+				Columns: []*schema.Column{PaymentOrdersColumns[6], PaymentOrdersColumns[10]},
+			},
+			{
+				Name:    "paymentorder_user_id_client_request_id",
+				Unique:  true,
+				Columns: []*schema.Column{PaymentOrdersColumns[20], PaymentOrdersColumns[9]},
+			},
+		},
+	}
+	// PaymentProductsColumns holds the columns for the "payment_products" table.
+	PaymentProductsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "created_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "updated_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "kind", Type: field.TypeString, Size: 20},
+		{Name: "name", Type: field.TypeString},
+		{Name: "description_md", Type: field.TypeString, Default: ""},
+		{Name: "status", Type: field.TypeString, Size: 20, Default: "inactive"},
+		{Name: "sort_order", Type: field.TypeInt, Default: 0},
+		{Name: "currency", Type: field.TypeString, Size: 10, Default: "CNY"},
+		{Name: "price_cents", Type: field.TypeInt64, Default: 0},
+		{Name: "validity_days", Type: field.TypeInt, Nullable: true},
+		{Name: "credit_balance", Type: field.TypeFloat64, Nullable: true, SchemaType: map[string]string{"postgres": "decimal(20,8)"}},
+		{Name: "allow_custom_amount", Type: field.TypeBool, Default: false},
+		{Name: "min_amount_cents", Type: field.TypeInt64, Nullable: true},
+		{Name: "max_amount_cents", Type: field.TypeInt64, Nullable: true},
+		{Name: "suggested_amounts_cents", Type: field.TypeJSON, Nullable: true, SchemaType: map[string]string{"postgres": "jsonb"}},
+		{Name: "exchange_rate", Type: field.TypeFloat64, Nullable: true, SchemaType: map[string]string{"postgres": "decimal(20,8)"}},
+		{Name: "group_id", Type: field.TypeInt64, Nullable: true},
+	}
+	// PaymentProductsTable holds the schema information for the "payment_products" table.
+	PaymentProductsTable = &schema.Table{
+		Name:       "payment_products",
+		Columns:    PaymentProductsColumns,
+		PrimaryKey: []*schema.Column{PaymentProductsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "payment_products_groups_payment_products",
+				Columns:    []*schema.Column{PaymentProductsColumns[17]},
+				RefColumns: []*schema.Column{GroupsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "paymentproduct_status_sort_order",
+				Unique:  false,
+				Columns: []*schema.Column{PaymentProductsColumns[6], PaymentProductsColumns[7]},
+			},
+			{
+				Name:    "paymentproduct_kind_status",
+				Unique:  false,
+				Columns: []*schema.Column{PaymentProductsColumns[3], PaymentProductsColumns[6]},
+			},
+			{
+				Name:    "paymentproduct_group_id",
+				Unique:  false,
+				Columns: []*schema.Column{PaymentProductsColumns[17]},
 			},
 		},
 	}
@@ -934,7 +1184,11 @@ var (
 		AccountGroupsTable,
 		AnnouncementsTable,
 		AnnouncementReadsTable,
+		EntitlementEventsTable,
 		GroupsTable,
+		PaymentNotificationsTable,
+		PaymentOrdersTable,
+		PaymentProductsTable,
 		PromoCodesTable,
 		PromoCodeUsagesTable,
 		ProxiesTable,
@@ -973,8 +1227,29 @@ func init() {
 	AnnouncementReadsTable.Annotation = &entsql.Annotation{
 		Table: "announcement_reads",
 	}
+	EntitlementEventsTable.ForeignKeys[0].RefTable = GroupsTable
+	EntitlementEventsTable.ForeignKeys[1].RefTable = PaymentOrdersTable
+	EntitlementEventsTable.ForeignKeys[2].RefTable = RedeemCodesTable
+	EntitlementEventsTable.ForeignKeys[3].RefTable = UsersTable
+	EntitlementEventsTable.ForeignKeys[4].RefTable = UsersTable
+	EntitlementEventsTable.Annotation = &entsql.Annotation{
+		Table: "entitlement_events",
+	}
 	GroupsTable.Annotation = &entsql.Annotation{
 		Table: "groups",
+	}
+	PaymentNotificationsTable.Annotation = &entsql.Annotation{
+		Table: "payment_notifications",
+	}
+	PaymentOrdersTable.ForeignKeys[0].RefTable = GroupsTable
+	PaymentOrdersTable.ForeignKeys[1].RefTable = PaymentProductsTable
+	PaymentOrdersTable.ForeignKeys[2].RefTable = UsersTable
+	PaymentOrdersTable.Annotation = &entsql.Annotation{
+		Table: "payment_orders",
+	}
+	PaymentProductsTable.ForeignKeys[0].RefTable = GroupsTable
+	PaymentProductsTable.Annotation = &entsql.Annotation{
+		Table: "payment_products",
 	}
 	PromoCodesTable.Annotation = &entsql.Annotation{
 		Table: "promo_codes",

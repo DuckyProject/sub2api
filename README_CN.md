@@ -382,6 +382,65 @@ go generate ./cmd/server
 
 ---
 
+## 支付与套餐购买（易支付 / TokenPay）
+
+Sub2API 内置了「原生购买页」与完整支付闭环（下单 → 跳转支付 → 回调验签 → 自动发放订阅/余额），用于开源自部署场景下让用户**无需手工写 SQL**就能配置并售卖套餐。
+
+### 1) 开启支付（管理员）
+
+1. 登录管理后台 → **系统设置**
+2. 配置以下字段（建议按顺序）：
+   - `public_base_url`：你的站点**外网可访问**地址，例如 `https://sub.example.com`（用于拼接回调/返回地址）
+   - `purchase_subscription_mode`：设置为 `native`
+   - `purchase_subscription_enabled`：开启
+   - `payment_enabled`：开启
+3. 至少完整配置一个支付渠道（否则保存会被拒绝）：
+   - **易支付（Epay）**
+     - `payment_epay_enabled=true`
+     - `payment_epay_gateway_url`：支付网关地址（支持填写网关根地址，系统会自动补全 `submit.php`）
+     - `payment_epay_pid`：商户 PID
+     - `payment_epay_key`：商户密钥（MD5）
+   - **TokenPay**
+     - `payment_tokenpay_enabled=true`
+     - `payment_tokenpay_gateway_url`：TokenPay 网关地址
+     - `payment_tokenpay_merchant_id`：商户号
+     - `payment_tokenpay_key`：商户密钥（MD5）
+   - （可选）`payment_balance_exchange_rate`：余额充值时「金额 → 余额」的默认汇率（当商品未配置 `exchange_rate` 时使用）
+4. 保存设置后，系统会自动使用 `public_base_url` 生成回调地址：
+   - `.../api/v1/payments/notify/epay`
+   - `.../api/v1/payments/notify/tokenpay`
+   返回地址：
+   - `.../purchase`
+
+> 回调地址必须能从支付平台访问到你的服务器；如果你在内网或本地开发，请使用反向代理/内网穿透（ngrok、cloudflared 等）并将 `public_base_url` 指向外网地址。
+
+### 2) 创建“支付商品”（套餐/充值）
+
+进入管理后台：`/admin/payment-products`（侧边栏：**支付商品**）
+
+- **订阅套餐**（`kind=subscription`）
+  - `group_id`：选择一个订阅类型的分组（先在「分组管理」里创建）
+  - `validity_days`：购买后新增/续期天数
+  - `price`：套餐价格（元）
+  - `status`：设为 `active` 才会在用户端展示
+- **余额充值**（`kind=balance`）
+  - 固定到账：填写 `credit_balance`（到账余额固定）
+  - 按汇率到账：不填 `credit_balance`，设置 `exchange_rate` 或使用全局 `payment_balance_exchange_rate`
+  - 自定义金额：开启 `allow_custom_amount` 后，用户可在 `/purchase` 页面输入充值金额（受最小/最大金额约束），并支持推荐金额快捷选择
+
+> 商品不想卖了：直接将 `status` 设为 `inactive`（下架），或在后台删除。删除后历史订单仍保留，但 `payment_orders.product_id` 可能被置为 `NULL`（不影响发放快照）。
+
+（可选）查看支付订单与回调通知：`/admin/payment-orders`（侧边栏：**支付订单**）
+
+### 3) 用户购买流程（原生页面）
+
+- 用户访问：`/purchase`
+- 选择支付渠道（易支付 / TokenPay）和套餐商品
+- 点击创建订单后会得到 `pay_url`，打开链接完成支付
+- 支付完成后可点击页面「刷新订单状态」，订单进入 `paid/fulfilled` 后权益会自动发放
+
+---
+
 ## 简易模式
 
 简易模式适合个人开发者或内部团队快速使用，不依赖完整 SaaS 功能。

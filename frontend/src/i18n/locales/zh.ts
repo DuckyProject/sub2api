@@ -192,6 +192,8 @@ export default {
     users: '用户管理',
     groups: '分组管理',
     subscriptions: '订阅管理',
+    paymentProducts: '支付商品',
+    paymentOrders: '支付订单',
     accounts: '账号管理',
     proxies: 'IP管理',
     redeemCodes: '兑换码',
@@ -1170,6 +1172,151 @@ export default {
       pleaseSelectGroup: '请选择分组',
       validityDaysRequired: '请输入有效的天数（至少1天）',
       revokeConfirm: "确定要撤销 '{user}' 的订阅吗？此操作无法撤销。"
+    },
+
+    payments: {
+      products: {
+        title: '支付商品',
+        description: '管理可购买的订阅套餐与充值商品',
+
+        // List / actions
+        create: '创建商品',
+        edit: '编辑商品',
+        searchPlaceholder: '搜索商品名称...',
+        failedToLoad: '加载支付商品失败',
+        created: '商品创建成功',
+        updated: '商品更新成功',
+        saveFailed: '保存失败',
+        actions: {
+          activate: '上架',
+          deactivate: '下架',
+          statusUpdated: '状态已更新',
+          deleteTitle: '删除商品',
+          deleteConfirm: "确定要删除商品 '{name}' 吗？此操作不可撤销（历史订单将保留，但 product_id 可能变为 NULL）。",
+          deleted: '商品已删除'
+        },
+
+        // Filters
+        allKinds: '全部类型',
+        allStatus: '全部状态',
+        kindSubscription: '订阅套餐',
+        kindBalance: '余额充值',
+        statusActive: '上架',
+        statusInactive: '下架',
+
+        // Sections
+        subscriptionConfig: '订阅商品配置',
+        balanceConfig: '充值商品配置',
+
+        // Fields
+        fields: {
+          kind: '类型',
+          name: '名称',
+          description: '描述（支持 Markdown）',
+          status: '状态',
+          sortOrder: '排序',
+          currency: '币种',
+          price: '价格',
+          priceHint: '以元为单位输入（系统将自动换算为分）。',
+
+          group: '分组',
+          groupHint: '请选择订阅计费类型（subscription）的分组',
+          groupSelectPlaceholder: '请选择订阅分组',
+          validityDays: '有效期（天）',
+
+          allowCustomAmount: '允许自定义金额',
+          allowCustomAmountHint: '开启后，下单金额由用户输入并受最小/最大金额约束',
+          minAmount: '最小金额（元）',
+          maxAmount: '最大金额（元）',
+          suggestedAmounts: '推荐金额（元）',
+          suggestedAmountsPlaceholder: '例如：10,20,50',
+          suggestedAmountsHint: '逗号分隔；用于前端快捷选项（可留空）',
+
+          exchangeRate: '兑换率',
+          exchangeRateHint: 'CNY -> balance；留空则使用系统设置里的 payment_balance_exchange_rate（默认 1）',
+          creditBalance: '固定到账余额',
+          creditBalanceHint: '可选：若填写则忽略兑换率，按固定余额到账'
+        },
+
+        // Table columns
+        columns: {
+          kind: '类型',
+          name: '名称',
+          status: '状态',
+          price: '价格',
+          subscription: '订阅信息',
+          sortOrder: '排序',
+          updatedAt: '更新时间',
+          actions: '操作'
+        }
+      },
+
+      orders: {
+        title: '支付订单',
+        description: '查看支付订单与回调通知',
+
+        searchPlaceholder: '搜索订单号/平台单号/支付链接...',
+        failedToLoad: '加载支付订单失败',
+        failedToLoadNotifications: '加载回调通知失败',
+
+        allKinds: '全部类型',
+        allStatus: '全部状态',
+        allProviders: '全部渠道',
+
+        kindSubscription: '订阅套餐',
+        kindBalance: '余额充值',
+
+        statusCreated: '已创建',
+        statusPaid: '已支付',
+        statusFulfilled: '已发放',
+        statusCancelled: '已取消',
+        statusExpired: '已过期',
+        statusFailed: '失败',
+
+        detailTitle: '订单详情',
+        notificationsTitle: '回调通知',
+        noNotifications: '暂无回调通知',
+        verified: '已验签',
+        notVerified: '未验签',
+        processed: '已处理',
+        notProcessed: '未处理',
+
+        fields: {
+          orderNo: '订单号',
+          userId: '用户ID',
+          kind: '类型',
+          provider: '渠道',
+          amount: '金额',
+          status: '状态',
+          createdAt: '创建时间',
+          paidAt: '支付时间',
+          fulfilledAt: '发放时间',
+          productId: '商品ID'
+        },
+
+        columns: {
+          orderNo: '订单号',
+          userId: '用户ID',
+          kind: '类型',
+          provider: '渠道',
+          providerTradeNo: '平台单号',
+          amount: '金额',
+          status: '状态',
+          createdAt: '创建时间',
+          paidAt: '支付时间',
+          fulfilledAt: '发放时间',
+          actions: '操作'
+        },
+
+        actions: {
+          openPayUrl: '打开支付页',
+          copyOrderNo: '复制订单号',
+          copyPayUrl: '复制支付链接',
+          copyRaw: '复制原始数据',
+          showRaw: '展开原始数据',
+          hideRaw: '收起原始数据'
+        }
+      }
     },
 
     // Accounts Management
@@ -3273,13 +3420,55 @@ export default {
 
   // Purchase Subscription Page
   purchase: {
-    title: '购买订阅',
-    description: '通过内嵌页面完成订阅购买',
+    title: '购买/充值',
+    description: '通过内嵌页面完成购买',
+    nativeDescription: '通过原生支付完成套餐购买与余额充值',
     openInNewTab: '新窗口打开',
     notEnabledTitle: '该功能未开启',
     notEnabledDesc: '管理员暂未开启购买订阅入口，请联系管理员。',
     notConfiguredTitle: '购买链接未配置',
-    notConfiguredDesc: '管理员已开启入口，但尚未配置购买订阅链接，请联系管理员。'
+    notConfiguredDesc: '管理员已开启入口，但尚未配置购买订阅链接，请联系管理员。',
+
+    paymentNotEnabledTitle: '支付功能未配置',
+    paymentNotEnabledDesc: '管理员已开启原生购买页，但尚未启用或配置支付渠道，请联系管理员。',
+    selectPaymentMethod: '选择支付方式',
+    packagesTitle: '订阅套餐',
+    balanceTitle: '余额充值',
+    tabs: {
+      subscription: '订阅套餐',
+      balance: '余额充值'
+    },
+    noProducts: '暂无可购买商品',
+    buyNow: '立即购买',
+    topupNow: '立即充值',
+    creatingOrder: '创建订单中...',
+    createOrderFailed: '创建订单失败',
+    orderCreatedTitle: '订单已创建',
+    orderNo: '订单号',
+    amount: '金额',
+    status: '状态',
+    openPayPage: '打开支付页面',
+    copyPayLink: '复制支付链接',
+    copied: '已复制',
+    refreshStatus: '刷新订单状态',
+    refreshing: '刷新中...',
+    refreshOrderFailed: '刷新订单失败',
+    loadProductsFailed: '加载商品失败',
+    paidTip: '完成支付后，可点击“刷新订单状态”，余额/订阅会自动更新。',
+
+    customAmountTag: '自定义金额',
+    customAmountLabel: '充值金额',
+    customAmountPlaceholder: '例如：10.00',
+    amountRequired: '请输入充值金额',
+    invalidAmount: '金额格式不正确',
+    minMaxHint: '范围：{min} ~ {max}',
+    minHint: '最小：{min}',
+    maxHint: '最大：{max}',
+    amountOutOfRange: '金额需在 {min} ~ {max} 范围内',
+
+    creditFixedHint: '固定到账余额：{credit}',
+    creditRateHint: '兑换率 {rate}，预计到账余额：{credit}',
+    creditRateFallbackHint: '预计到账余额：按系统默认汇率计算'
   },
 
   // Announcements Page

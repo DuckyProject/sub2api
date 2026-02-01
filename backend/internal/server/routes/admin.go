@@ -32,6 +32,8 @@ func RegisterAdminRoutes(
 		// 公告管理
 		registerAnnouncementRoutes(admin, h)
 
+		// 支付商品管理
+		registerPaymentManagementRoutes(admin, h)
 		// OpenAI OAuth
 		registerOpenAIOAuthRoutes(admin, h)
 
@@ -67,6 +69,30 @@ func RegisterAdminRoutes(
 
 		// 用户属性管理
 		registerUserAttributeRoutes(admin, h)
+	}
+}
+
+func registerPaymentManagementRoutes(admin *gin.RouterGroup, h *handler.Handlers) {
+	payments := admin.Group("/payments")
+	{
+		orders := payments.Group("/orders")
+		{
+			orders.GET("", h.Admin.Payment.ListOrders)
+			orders.GET("/:order_no", h.Admin.Payment.GetOrder)
+		}
+
+		notifications := payments.Group("/notifications")
+		{
+			notifications.GET("", h.Admin.Payment.ListNotifications)
+		}
+
+		products := payments.Group("/products")
+		{
+			products.GET("", h.Admin.Payment.ListProducts)
+			products.POST("", h.Admin.Payment.CreateProduct)
+			products.PUT("/:id", h.Admin.Payment.UpdateProduct)
+			products.DELETE("/:id", h.Admin.Payment.DeleteProduct)
+		}
 	}
 }
 

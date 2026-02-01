@@ -266,6 +266,30 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
+    path: '/admin/payment-products',
+    name: 'AdminPaymentProducts',
+    component: () => import('@/views/admin/PaymentProductsView.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: true,
+      title: 'Payment Products',
+      titleKey: 'admin.payments.products.title',
+      descriptionKey: 'admin.payments.products.description'
+    }
+  },
+  {
+    path: '/admin/payment-orders',
+    name: 'AdminPaymentOrders',
+    component: () => import('@/views/admin/PaymentOrdersView.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: true,
+      title: 'Payment Orders',
+      titleKey: 'admin.payments.orders.title',
+      descriptionKey: 'admin.payments.orders.description'
+    }
+  },
+  {
     path: '/admin/accounts',
     name: 'AdminAccounts',
     component: () => import('@/views/admin/AccountsView.vue'),

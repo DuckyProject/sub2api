@@ -49,6 +49,9 @@ func (h *SettingHandler) GetPublicSettings(c *gin.Context) {
 		HideCcsImportButton:         settings.HideCcsImportButton,
 		PurchaseSubscriptionEnabled: settings.PurchaseSubscriptionEnabled,
 		PurchaseSubscriptionURL:     settings.PurchaseSubscriptionURL,
+		PurchaseSubscriptionMode:    settings.PurchaseSubscriptionMode,
+		PaymentEnabled:              settings.PaymentEnabled,
+		PaymentMethods:              settings.PaymentMethods,
 		LinuxDoOAuthEnabled:         settings.LinuxDoOAuthEnabled,
 		Version:                     h.version,
 	})

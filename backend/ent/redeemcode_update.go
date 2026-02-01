@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/Wei-Shaw/sub2api/ent/entitlementevent"
 	"github.com/Wei-Shaw/sub2api/ent/group"
 	"github.com/Wei-Shaw/sub2api/ent/predicate"
 	"github.com/Wei-Shaw/sub2api/ent/redeemcode"
@@ -218,6 +219,21 @@ func (_u *RedeemCodeUpdate) SetGroup(v *Group) *RedeemCodeUpdate {
 	return _u.SetGroupID(v.ID)
 }
 
+// AddEntitlementEventIDs adds the "entitlement_events" edge to the EntitlementEvent entity by IDs.
+func (_u *RedeemCodeUpdate) AddEntitlementEventIDs(ids ...int64) *RedeemCodeUpdate {
+	_u.mutation.AddEntitlementEventIDs(ids...)
+	return _u
+}
+
+// AddEntitlementEvents adds the "entitlement_events" edges to the EntitlementEvent entity.
+func (_u *RedeemCodeUpdate) AddEntitlementEvents(v ...*EntitlementEvent) *RedeemCodeUpdate {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddEntitlementEventIDs(ids...)
+}
+
 // Mutation returns the RedeemCodeMutation object of the builder.
 func (_u *RedeemCodeUpdate) Mutation() *RedeemCodeMutation {
 	return _u.mutation
@@ -233,6 +249,27 @@ func (_u *RedeemCodeUpdate) ClearUser() *RedeemCodeUpdate {
 func (_u *RedeemCodeUpdate) ClearGroup() *RedeemCodeUpdate {
 	_u.mutation.ClearGroup()
 	return _u
+}
+
+// ClearEntitlementEvents clears all "entitlement_events" edges to the EntitlementEvent entity.
+func (_u *RedeemCodeUpdate) ClearEntitlementEvents() *RedeemCodeUpdate {
+	_u.mutation.ClearEntitlementEvents()
+	return _u
+}
+
+// RemoveEntitlementEventIDs removes the "entitlement_events" edge to EntitlementEvent entities by IDs.
+func (_u *RedeemCodeUpdate) RemoveEntitlementEventIDs(ids ...int64) *RedeemCodeUpdate {
+	_u.mutation.RemoveEntitlementEventIDs(ids...)
+	return _u
+}
+
+// RemoveEntitlementEvents removes "entitlement_events" edges to EntitlementEvent entities.
+func (_u *RedeemCodeUpdate) RemoveEntitlementEvents(v ...*EntitlementEvent) *RedeemCodeUpdate {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveEntitlementEventIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -378,6 +415,51 @@ func (_u *RedeemCodeUpdate) sqlSave(ctx context.Context) (_node int, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(group.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.EntitlementEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   redeemcode.EntitlementEventsTable,
+			Columns: []string{redeemcode.EntitlementEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(entitlementevent.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedEntitlementEventsIDs(); len(nodes) > 0 && !_u.mutation.EntitlementEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   redeemcode.EntitlementEventsTable,
+			Columns: []string{redeemcode.EntitlementEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(entitlementevent.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.EntitlementEventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   redeemcode.EntitlementEventsTable,
+			Columns: []string{redeemcode.EntitlementEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(entitlementevent.FieldID, field.TypeInt64),
 			},
 		}
 		for _, k := range nodes {
@@ -593,6 +675,21 @@ func (_u *RedeemCodeUpdateOne) SetGroup(v *Group) *RedeemCodeUpdateOne {
 	return _u.SetGroupID(v.ID)
 }
 
+// AddEntitlementEventIDs adds the "entitlement_events" edge to the EntitlementEvent entity by IDs.
+func (_u *RedeemCodeUpdateOne) AddEntitlementEventIDs(ids ...int64) *RedeemCodeUpdateOne {
+	_u.mutation.AddEntitlementEventIDs(ids...)
+	return _u
+}
+
+// AddEntitlementEvents adds the "entitlement_events" edges to the EntitlementEvent entity.
+func (_u *RedeemCodeUpdateOne) AddEntitlementEvents(v ...*EntitlementEvent) *RedeemCodeUpdateOne {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddEntitlementEventIDs(ids...)
+}
+
 // Mutation returns the RedeemCodeMutation object of the builder.
 func (_u *RedeemCodeUpdateOne) Mutation() *RedeemCodeMutation {
 	return _u.mutation
@@ -608,6 +705,27 @@ func (_u *RedeemCodeUpdateOne) ClearUser() *RedeemCodeUpdateOne {
 func (_u *RedeemCodeUpdateOne) ClearGroup() *RedeemCodeUpdateOne {
 	_u.mutation.ClearGroup()
 	return _u
+}
+
+// ClearEntitlementEvents clears all "entitlement_events" edges to the EntitlementEvent entity.
+func (_u *RedeemCodeUpdateOne) ClearEntitlementEvents() *RedeemCodeUpdateOne {
+	_u.mutation.ClearEntitlementEvents()
+	return _u
+}
+
+// RemoveEntitlementEventIDs removes the "entitlement_events" edge to EntitlementEvent entities by IDs.
+func (_u *RedeemCodeUpdateOne) RemoveEntitlementEventIDs(ids ...int64) *RedeemCodeUpdateOne {
+	_u.mutation.RemoveEntitlementEventIDs(ids...)
+	return _u
+}
+
+// RemoveEntitlementEvents removes "entitlement_events" edges to EntitlementEvent entities.
+func (_u *RedeemCodeUpdateOne) RemoveEntitlementEvents(v ...*EntitlementEvent) *RedeemCodeUpdateOne {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveEntitlementEventIDs(ids...)
 }
 
 // Where appends a list predicates to the RedeemCodeUpdate builder.
@@ -783,6 +901,51 @@ func (_u *RedeemCodeUpdateOne) sqlSave(ctx context.Context) (_node *RedeemCode, 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(group.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.EntitlementEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   redeemcode.EntitlementEventsTable,
+			Columns: []string{redeemcode.EntitlementEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(entitlementevent.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedEntitlementEventsIDs(); len(nodes) > 0 && !_u.mutation.EntitlementEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   redeemcode.EntitlementEventsTable,
+			Columns: []string{redeemcode.EntitlementEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(entitlementevent.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.EntitlementEventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   redeemcode.EntitlementEventsTable,
+			Columns: []string{redeemcode.EntitlementEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(entitlementevent.FieldID, field.TypeInt64),
 			},
 		}
 		for _, k := range nodes {

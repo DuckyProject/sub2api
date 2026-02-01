@@ -110,6 +110,20 @@ const (
 	SettingKeyHideCcsImportButton         = "hide_ccs_import_button"        // 是否隐藏 API Keys 页面的导入 CCS 按钮
 	SettingKeyPurchaseSubscriptionEnabled = "purchase_subscription_enabled" // 是否展示“购买订阅”页面入口
 	SettingKeyPurchaseSubscriptionURL     = "purchase_subscription_url"     // “购买订阅”页面 URL（作为 iframe src）
+	SettingKeyPurchaseSubscriptionMode    = "purchase_subscription_mode"    // 购买页模式: disabled | iframe | native
+
+	// 支付设置
+	SettingKeyPaymentEnabled             = "payment_enabled"               // 支付总开关
+	SettingKeyPaymentEpayEnabled         = "payment_epay_enabled"          // 易支付开关
+	SettingKeyPaymentEpayGatewayURL      = "payment_epay_gateway_url"      // 易支付网关
+	SettingKeyPaymentEpayPID             = "payment_epay_pid"              // 易支付商户ID/PID
+	SettingKeyPaymentEpayKey             = "payment_epay_key"              // 易支付密钥（加密存储）
+	SettingKeyPaymentTokenPayEnabled     = "payment_tokenpay_enabled"      // TokenPay 开关
+	SettingKeyPaymentTokenPayGatewayURL  = "payment_tokenpay_gateway_url"  // TokenPay 网关
+	SettingKeyPaymentTokenPayMerchantID  = "payment_tokenpay_merchant_id"  // TokenPay 商户ID
+	SettingKeyPaymentTokenPayKey         = "payment_tokenpay_key"          // TokenPay 密钥（加密存储）
+	SettingKeyPaymentBalanceExchangeRate = "payment_balance_exchange_rate" // CNY -> balance 兑换率（默认 1）
+	SettingKeyPublicBaseURL              = "public_base_url"               // 对外访问 Base URL（用于生成回调绝对地址）
 
 	// 默认配置
 	SettingKeyDefaultConcurrency = "default_concurrency" // 新用户默认并发量

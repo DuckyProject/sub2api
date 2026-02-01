@@ -36,6 +36,19 @@ type SystemSettings struct {
 	HideCcsImportButton         bool   `json:"hide_ccs_import_button"`
 	PurchaseSubscriptionEnabled bool   `json:"purchase_subscription_enabled"`
 	PurchaseSubscriptionURL     string `json:"purchase_subscription_url"`
+	PurchaseSubscriptionMode    string `json:"purchase_subscription_mode"`
+
+	PaymentEnabled               bool    `json:"payment_enabled"`
+	PaymentEpayEnabled           bool    `json:"payment_epay_enabled"`
+	PaymentEpayGatewayURL        string  `json:"payment_epay_gateway_url"`
+	PaymentEpayPID               string  `json:"payment_epay_pid"`
+	PaymentEpayKeyConfigured     bool    `json:"payment_epay_key_configured"`
+	PaymentTokenPayEnabled       bool    `json:"payment_tokenpay_enabled"`
+	PaymentTokenPayGatewayURL    string  `json:"payment_tokenpay_gateway_url"`
+	PaymentTokenPayMerchantID    string  `json:"payment_tokenpay_merchant_id"`
+	PaymentTokenPayKeyConfigured bool    `json:"payment_tokenpay_key_configured"`
+	PaymentBalanceExchangeRate   float64 `json:"payment_balance_exchange_rate"`
+	PublicBaseURL                string  `json:"public_base_url"`
 
 	DefaultConcurrency int     `json:"default_concurrency"`
 	DefaultBalance     float64 `json:"default_balance"`
@@ -76,8 +89,13 @@ type PublicSettings struct {
 	HideCcsImportButton         bool   `json:"hide_ccs_import_button"`
 	PurchaseSubscriptionEnabled bool   `json:"purchase_subscription_enabled"`
 	PurchaseSubscriptionURL     string `json:"purchase_subscription_url"`
-	LinuxDoOAuthEnabled         bool   `json:"linuxdo_oauth_enabled"`
-	Version                     string `json:"version"`
+	PurchaseSubscriptionMode    string `json:"purchase_subscription_mode"`
+
+	PaymentEnabled bool     `json:"payment_enabled"`
+	PaymentMethods []string `json:"payment_methods"`
+
+	LinuxDoOAuthEnabled bool   `json:"linuxdo_oauth_enabled"`
+	Version             string `json:"version"`
 }
 
 // StreamTimeoutSettings 流超时处理配置 DTO

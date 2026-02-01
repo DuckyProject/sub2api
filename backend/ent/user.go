@@ -71,11 +71,17 @@ type UserEdges struct {
 	AttributeValues []*UserAttributeValue `json:"attribute_values,omitempty"`
 	// PromoCodeUsages holds the value of the promo_code_usages edge.
 	PromoCodeUsages []*PromoCodeUsage `json:"promo_code_usages,omitempty"`
+	// PaymentOrders holds the value of the payment_orders edge.
+	PaymentOrders []*PaymentOrder `json:"payment_orders,omitempty"`
+	// EntitlementEvents holds the value of the entitlement_events edge.
+	EntitlementEvents []*EntitlementEvent `json:"entitlement_events,omitempty"`
+	// EntitlementEventsActorUser holds the value of the entitlement_events_actor_user edge.
+	EntitlementEventsActorUser []*EntitlementEvent `json:"entitlement_events_actor_user,omitempty"`
 	// UserAllowedGroups holds the value of the user_allowed_groups edge.
 	UserAllowedGroups []*UserAllowedGroup `json:"user_allowed_groups,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [10]bool
+	loadedTypes [13]bool
 }
 
 // APIKeysOrErr returns the APIKeys value or an error if the edge
@@ -159,10 +165,37 @@ func (e UserEdges) PromoCodeUsagesOrErr() ([]*PromoCodeUsage, error) {
 	return nil, &NotLoadedError{edge: "promo_code_usages"}
 }
 
+// PaymentOrdersOrErr returns the PaymentOrders value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) PaymentOrdersOrErr() ([]*PaymentOrder, error) {
+	if e.loadedTypes[9] {
+		return e.PaymentOrders, nil
+	}
+	return nil, &NotLoadedError{edge: "payment_orders"}
+}
+
+// EntitlementEventsOrErr returns the EntitlementEvents value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) EntitlementEventsOrErr() ([]*EntitlementEvent, error) {
+	if e.loadedTypes[10] {
+		return e.EntitlementEvents, nil
+	}
+	return nil, &NotLoadedError{edge: "entitlement_events"}
+}
+
+// EntitlementEventsActorUserOrErr returns the EntitlementEventsActorUser value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) EntitlementEventsActorUserOrErr() ([]*EntitlementEvent, error) {
+	if e.loadedTypes[11] {
+		return e.EntitlementEventsActorUser, nil
+	}
+	return nil, &NotLoadedError{edge: "entitlement_events_actor_user"}
+}
+
 // UserAllowedGroupsOrErr returns the UserAllowedGroups value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) UserAllowedGroupsOrErr() ([]*UserAllowedGroup, error) {
-	if e.loadedTypes[9] {
+	if e.loadedTypes[12] {
 		return e.UserAllowedGroups, nil
 	}
 	return nil, &NotLoadedError{edge: "user_allowed_groups"}
@@ -347,6 +380,21 @@ func (_m *User) QueryAttributeValues() *UserAttributeValueQuery {
 // QueryPromoCodeUsages queries the "promo_code_usages" edge of the User entity.
 func (_m *User) QueryPromoCodeUsages() *PromoCodeUsageQuery {
 	return NewUserClient(_m.config).QueryPromoCodeUsages(_m)
+}
+
+// QueryPaymentOrders queries the "payment_orders" edge of the User entity.
+func (_m *User) QueryPaymentOrders() *PaymentOrderQuery {
+	return NewUserClient(_m.config).QueryPaymentOrders(_m)
+}
+
+// QueryEntitlementEvents queries the "entitlement_events" edge of the User entity.
+func (_m *User) QueryEntitlementEvents() *EntitlementEventQuery {
+	return NewUserClient(_m.config).QueryEntitlementEvents(_m)
+}
+
+// QueryEntitlementEventsActorUser queries the "entitlement_events_actor_user" edge of the User entity.
+func (_m *User) QueryEntitlementEventsActorUser() *EntitlementEventQuery {
+	return NewUserClient(_m.config).QueryEntitlementEventsActorUser(_m)
 }
 
 // QueryUserAllowedGroups queries the "user_allowed_groups" edge of the User entity.
