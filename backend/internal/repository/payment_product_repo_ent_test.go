@@ -116,4 +116,3 @@ func TestPaymentProductRepositoryEntCreateBalanceProductPersistsConfigFields(t *
 	require.NotNil(t, loaded.CreditBalance)
 	require.InDelta(t, creditBalance, *loaded.CreditBalance, 1e-9)
 }
-

@@ -146,17 +146,17 @@ type UpdateSettingsRequest struct {
 	PurchaseSubscriptionMode    *string `json:"purchase_subscription_mode"`
 
 	// 支付设置
-	PaymentEnabled               *bool    `json:"payment_enabled"`
-	PaymentEpayEnabled           *bool    `json:"payment_epay_enabled"`
-	PaymentEpayGatewayURL        *string  `json:"payment_epay_gateway_url"`
-	PaymentEpayPID               *string  `json:"payment_epay_pid"`
-	PaymentEpayKey               *string  `json:"payment_epay_key"`
-	PaymentTokenPayEnabled       *bool    `json:"payment_tokenpay_enabled"`
-	PaymentTokenPayGatewayURL    *string  `json:"payment_tokenpay_gateway_url"`
-	PaymentTokenPayMerchantID    *string  `json:"payment_tokenpay_merchant_id"`
-	PaymentTokenPayKey           *string  `json:"payment_tokenpay_key"`
-	PaymentBalanceExchangeRate   *float64 `json:"payment_balance_exchange_rate"`
-	PublicBaseURL                *string  `json:"public_base_url"`
+	PaymentEnabled             *bool    `json:"payment_enabled"`
+	PaymentEpayEnabled         *bool    `json:"payment_epay_enabled"`
+	PaymentEpayGatewayURL      *string  `json:"payment_epay_gateway_url"`
+	PaymentEpayPID             *string  `json:"payment_epay_pid"`
+	PaymentEpayKey             *string  `json:"payment_epay_key"`
+	PaymentTokenPayEnabled     *bool    `json:"payment_tokenpay_enabled"`
+	PaymentTokenPayGatewayURL  *string  `json:"payment_tokenpay_gateway_url"`
+	PaymentTokenPayMerchantID  *string  `json:"payment_tokenpay_merchant_id"`
+	PaymentTokenPayKey         *string  `json:"payment_tokenpay_key"`
+	PaymentBalanceExchangeRate *float64 `json:"payment_balance_exchange_rate"`
+	PublicBaseURL              *string  `json:"public_base_url"`
 
 	// 默认配置
 	DefaultConcurrency int     `json:"default_concurrency"`

@@ -47,11 +47,11 @@ type PaymentProduct struct {
 	ValidityDays  *int
 	CreditBalance *float64
 
-	AllowCustomAmount    bool
-	MinAmountCents       *int64
-	MaxAmountCents       *int64
+	AllowCustomAmount     bool
+	MinAmountCents        *int64
+	MaxAmountCents        *int64
 	SuggestedAmountsCents []int64
-	ExchangeRate         *float64
+	ExchangeRate          *float64
 
 	CreatedAt time.Time
 	UpdatedAt time.Time
@@ -60,9 +60,9 @@ type PaymentProduct struct {
 type PaymentOrder struct {
 	ID int64
 
-	OrderNo string
-	UserID  int64
-	Kind    string
+	OrderNo   string
+	UserID    int64
+	Kind      string
 	ProductID *int64
 
 	Status   string
@@ -71,12 +71,12 @@ type PaymentOrder struct {
 	Currency    string
 	AmountCents int64
 
-	ClientRequestID  *string
-	ProviderTradeNo  *string
-	PayURL           *string
-	ExpiresAt        *time.Time
-	PaidAt           *time.Time
-	FulfilledAt      *time.Time
+	ClientRequestID *string
+	ProviderTradeNo *string
+	PayURL          *string
+	ExpiresAt       *time.Time
+	PaidAt          *time.Time
+	FulfilledAt     *time.Time
 
 	GrantGroupID       *int64
 	GrantValidityDays  *int
@@ -102,20 +102,20 @@ type PaymentNotification struct {
 	Processed    bool
 	ProcessError *string
 
-	RawBody     string
-	ReceivedAt  time.Time
+	RawBody    string
+	ReceivedAt time.Time
 }
 
 type EntitlementEvent struct {
 	ID int64
 
-	UserID  int64
-	Kind    string
-	Source  string
+	UserID int64
+	Kind   string
+	Source string
 
-	GroupID         *int64
-	ValidityDays    *int
-	BalanceDelta    *float64
+	GroupID          *int64
+	ValidityDays     *int
+	BalanceDelta     *float64
 	ConcurrencyDelta *int
 
 	OrderID      *int64

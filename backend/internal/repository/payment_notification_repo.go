@@ -178,12 +178,12 @@ func paymentNotificationEntityToService(m *dbent.PaymentNotification) *service.P
 		return nil
 	}
 	out := &service.PaymentNotification{
-		ID:        m.ID,
-		Provider:  m.Provider,
-		EventID:   m.EventID,
-		Verified:  m.Verified,
-		Processed: m.Processed,
-		RawBody:   m.RawBody,
+		ID:         m.ID,
+		Provider:   m.Provider,
+		EventID:    m.EventID,
+		Verified:   m.Verified,
+		Processed:  m.Processed,
+		RawBody:    m.RawBody,
 		ReceivedAt: m.ReceivedAt,
 	}
 

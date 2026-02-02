@@ -41,19 +41,19 @@ type SystemSettings struct {
 	PurchaseSubscriptionMode    string // disabled | iframe | native
 
 	// 支付配置（敏感信息不在 DTO 中返回，但在 service.SystemSettings 中保留，便于“留空保留当前值”校验）
-	PaymentEnabled             bool
-	PaymentEpayEnabled         bool
-	PaymentEpayGatewayURL      string
-	PaymentEpayPID             string
-	PaymentEpayKey             string
-	PaymentEpayKeyConfigured   bool
-	PaymentTokenPayEnabled     bool
-	PaymentTokenPayGatewayURL  string
-	PaymentTokenPayMerchantID  string
-	PaymentTokenPayKey         string
+	PaymentEnabled               bool
+	PaymentEpayEnabled           bool
+	PaymentEpayGatewayURL        string
+	PaymentEpayPID               string
+	PaymentEpayKey               string
+	PaymentEpayKeyConfigured     bool
+	PaymentTokenPayEnabled       bool
+	PaymentTokenPayGatewayURL    string
+	PaymentTokenPayMerchantID    string
+	PaymentTokenPayKey           string
 	PaymentTokenPayKeyConfigured bool
-	PaymentBalanceExchangeRate float64
-	PublicBaseURL              string
+	PaymentBalanceExchangeRate   float64
+	PublicBaseURL                string
 
 	DefaultConcurrency int
 	DefaultBalance     float64

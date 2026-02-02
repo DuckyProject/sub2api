@@ -360,7 +360,7 @@ func (s *PaymentService) HandleNotify(ctx context.Context, provider string, rawB
 		return statusCode, body, contentType, nil
 	}
 	if strings.TrimSpace(order.Currency) != "" && strings.TrimSpace(ev.Currency) != "" &&
-		strings.ToUpper(strings.TrimSpace(order.Currency)) != strings.ToUpper(strings.TrimSpace(ev.Currency)) {
+		!strings.EqualFold(strings.TrimSpace(order.Currency), strings.TrimSpace(ev.Currency)) {
 		msg := "currency mismatch"
 		_ = s.notifyRepo.MarkProcessed(txCtx, provider, ev.EventID, true, true, &msg)
 		if cerr := tx.Commit(); cerr != nil {

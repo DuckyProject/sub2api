@@ -48,18 +48,18 @@ type PaymentOrder struct {
 }
 
 type PaymentNotification struct {
-	ID              int64      `json:"id"`
-	Provider        string     `json:"provider"`
-	EventID         string     `json:"event_id"`
-	OrderNo         *string    `json:"order_no"`
-	ProviderTradeNo *string    `json:"provider_trade_no"`
-	AmountCents     *int64     `json:"amount_cents"`
-	Currency        *string    `json:"currency"`
-	Verified        bool       `json:"verified"`
-	Processed       bool       `json:"processed"`
-	ProcessError    *string    `json:"process_error"`
-	RawBody         string     `json:"raw_body"`
-	ReceivedAt      time.Time  `json:"received_at"`
+	ID              int64     `json:"id"`
+	Provider        string    `json:"provider"`
+	EventID         string    `json:"event_id"`
+	OrderNo         *string   `json:"order_no"`
+	ProviderTradeNo *string   `json:"provider_trade_no"`
+	AmountCents     *int64    `json:"amount_cents"`
+	Currency        *string   `json:"currency"`
+	Verified        bool      `json:"verified"`
+	Processed       bool      `json:"processed"`
+	ProcessError    *string   `json:"process_error"`
+	RawBody         string    `json:"raw_body"`
+	ReceivedAt      time.Time `json:"received_at"`
 }
 
 type CreatePaymentOrderRequest struct {
