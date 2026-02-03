@@ -809,21 +809,12 @@ func (r *accountRepository) SetAntigravityQuotaScopeLimit(ctx context.Context, i
 		return err
 	}
 
-	scopeKey := string(scope)
+	path := "{antigravity_quota_scopes," + string(scope) + "}"
 	client := clientFromContext(ctx, r.client)
 	result, err := client.ExecContext(
 		ctx,
-		`UPDATE accounts SET
-			extra = jsonb_set(
-				jsonb_set(COALESCE(extra, '{}'::jsonb), '{antigravity_quota_scopes}'::text[], COALESCE(extra->'antigravity_quota_scopes', '{}'::jsonb), true),
-				ARRAY['antigravity_quota_scopes', $1]::text[],
-				$2::jsonb,
-				true
-			),
-			updated_at = NOW(),
-			last_used_at = NOW()
-		WHERE id = $3 AND deleted_at IS NULL`,
-		scopeKey,
+		"UPDATE accounts SET extra = jsonb_set(COALESCE(extra, '{}'::jsonb), $1::text[], $2::jsonb, true), updated_at = NOW() WHERE id = $3 AND deleted_at IS NULL",
+		path,
 		raw,
 		id,
 	)
@@ -838,7 +829,6 @@ func (r *accountRepository) SetAntigravityQuotaScopeLimit(ctx context.Context, i
 	if affected == 0 {
 		return service.ErrAccountNotFound
 	}
-
 	if err := enqueueSchedulerOutbox(ctx, r.sql, service.SchedulerOutboxEventAccountChanged, &id, nil, nil); err != nil {
 		log.Printf("[SchedulerOutbox] enqueue quota scope failed: account=%d err=%v", id, err)
 	}
@@ -859,19 +849,12 @@ func (r *accountRepository) SetModelRateLimit(ctx context.Context, id int64, sco
 		return err
 	}
 
+	path := "{model_rate_limits," + scope + "}"
 	client := clientFromContext(ctx, r.client)
 	result, err := client.ExecContext(
 		ctx,
-		`UPDATE accounts SET 
-			extra = jsonb_set(
-				jsonb_set(COALESCE(extra, '{}'::jsonb), '{model_rate_limits}'::text[], COALESCE(extra->'model_rate_limits', '{}'::jsonb), true),
-				ARRAY['model_rate_limits', $1]::text[],
-				$2::jsonb,
-				true
-			),
-			updated_at = NOW()
-		WHERE id = $3 AND deleted_at IS NULL`,
-		scope,
+		"UPDATE accounts SET extra = jsonb_set(COALESCE(extra, '{}'::jsonb), $1::text[], $2::jsonb, true), updated_at = NOW() WHERE id = $3 AND deleted_at IS NULL",
+		path,
 		raw,
 		id,
 	)
