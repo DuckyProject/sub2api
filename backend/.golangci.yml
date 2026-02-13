@@ -225,7 +225,8 @@ linters:
         - SA4005
         # A value assigned to a variable is never read before being overwritten. Forgotten error check or dead code?.
         # https://staticcheck.dev/docs/checks/#SA4006
-        - SA4006
+        # Go 1.26 的 new(value) 语法会触发 staticcheck 的误报（SA4006），先临时关闭。
+        - -SA4006
         # The variable in the loop condition never changes, are you incrementing the wrong variable?.
         # https://staticcheck.dev/docs/checks/#SA4008
         - SA4008
