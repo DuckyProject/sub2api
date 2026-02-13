@@ -83,8 +83,7 @@ func isUniqueConstraintViolation(err error) bool {
 	// 优先检测 PostgreSQL 特定错误码（最精确）。
 	// 错误码 23505 对应 unique_violation。
 	// 参考：https://www.postgresql.org/docs/current/errcodes-appendix.html
-	var pgErr *pq.Error
-	if errors.As(err, &pgErr) {
+	if pgErr, ok := errors.AsType[*pq.Error](err); ok {
 		return pgErr.Code == "23505"
 	}
 

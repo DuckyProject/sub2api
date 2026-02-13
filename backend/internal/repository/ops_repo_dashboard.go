@@ -536,35 +536,29 @@ func aggregateHourlyRows(rows []opsHourlyMetricsRow) opsDashboardPartial {
 
 	// duration
 	if p50W > 0 {
-		v := int(math.Round(p50Sum / float64(p50W)))
-		out.duration.P50 = &v
+		out.duration.P50 = new(int(math.Round(p50Sum / float64(p50W))))
 	}
 	if p90W > 0 {
-		v := int(math.Round(p90Sum / float64(p90W)))
-		out.duration.P90 = &v
+		out.duration.P90 = new(int(math.Round(p90Sum / float64(p90W))))
 	}
 	out.duration.P95 = p95Max
 	out.duration.P99 = p99Max
 	if avgW > 0 {
-		v := int(math.Round(avgSum / float64(avgW)))
-		out.duration.Avg = &v
+		out.duration.Avg = new(int(math.Round(avgSum / float64(avgW))))
 	}
 	out.duration.Max = maxMax
 
 	// ttft
 	if ttftP50W > 0 {
-		v := int(math.Round(ttftP50Sum / float64(ttftP50W)))
-		out.ttft.P50 = &v
+		out.ttft.P50 = new(int(math.Round(ttftP50Sum / float64(ttftP50W))))
 	}
 	if ttftP90W > 0 {
-		v := int(math.Round(ttftP90Sum / float64(ttftP90W)))
-		out.ttft.P90 = &v
+		out.ttft.P90 = new(int(math.Round(ttftP90Sum / float64(ttftP90W))))
 	}
 	out.ttft.P95 = ttftP95Max
 	out.ttft.P99 = ttftP99Max
 	if ttftAvgW > 0 {
-		v := int(math.Round(ttftAvgSum / float64(ttftAvgW)))
-		out.ttft.Avg = &v
+		out.ttft.Avg = new(int(math.Round(ttftAvgSum / float64(ttftAvgW))))
 	}
 	out.ttft.Max = ttftMaxMax
 
@@ -648,8 +642,7 @@ func combineApproxPercentiles(segments []opsPercentileSegment) service.OpsPercen
 		if w <= 0 {
 			return nil
 		}
-		out := int(math.Round(sum / float64(w)))
-		return &out
+		return new(int(math.Round(sum / float64(w))))
 	}
 
 	maxInt := func(get func(service.OpsPercentiles) *int) *int {
@@ -660,8 +653,7 @@ func combineApproxPercentiles(segments []opsPercentileSegment) service.OpsPercen
 				continue
 			}
 			if max == nil || *v > *max {
-				c := *v
-				max = &c
+				max = new(*v)
 			}
 		}
 		return max
@@ -762,8 +754,7 @@ AND duration_ms IS NOT NULL`
 		duration.P99 = floatToIntPtr(p99)
 		duration.Avg = floatToIntPtr(avg)
 		if max.Valid {
-			v := int(max.Int64)
-			duration.Max = &v
+			duration.Max = new(int(max.Int64))
 		}
 	}
 
@@ -794,8 +785,7 @@ AND first_token_ms IS NOT NULL`
 		ttft.P99 = floatToIntPtr(p99)
 		ttft.Avg = floatToIntPtr(avg)
 		if max.Valid {
-			v := int(max.Int64)
-			ttft.Max = &v
+			ttft.Max = new(int(max.Int64))
 		}
 	}
 
@@ -995,8 +985,7 @@ func floatToIntPtr(v sql.NullFloat64) *int {
 	if !v.Valid {
 		return nil
 	}
-	n := int(math.Round(v.Float64))
-	return &n
+	return new(int(math.Round(v.Float64)))
 }
 
 func safeDivideFloat64(numerator float64, denominator float64) float64 {

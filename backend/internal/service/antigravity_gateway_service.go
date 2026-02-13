@@ -105,8 +105,7 @@ func (e *AntigravityAccountSwitchError) Error() string {
 
 // IsAntigravityAccountSwitchError 检查错误是否为账号切换信号
 func IsAntigravityAccountSwitchError(err error) (*AntigravityAccountSwitchError, bool) {
-	var switchErr *AntigravityAccountSwitchError
-	if errors.As(err, &switchErr) {
+	if switchErr, ok := errors.AsType[*AntigravityAccountSwitchError](err); ok {
 		return switchErr, true
 	}
 	return nil, false
@@ -769,8 +768,7 @@ func isAntigravityConnectionError(err error) bool {
 	}
 
 	// 检查超时错误
-	var netErr net.Error
-	if errors.As(err, &netErr) && netErr.Timeout() {
+	if netErr, ok := errors.AsType[net.Error](err); ok && netErr.Timeout() {
 		return true
 	}
 
@@ -2905,8 +2903,7 @@ func (s *AntigravityGatewayService) handleGeminiStreamingResponse(c *gin.Context
 				}
 
 				if firstTokenMs == nil {
-					ms := int(time.Since(startTime).Milliseconds())
-					firstTokenMs = &ms
+					firstTokenMs = new(int(time.Since(startTime).Milliseconds()))
 				}
 
 				cw.Fprintf("data: %s\n\n", payload)
@@ -3035,8 +3032,7 @@ func (s *AntigravityGatewayService) handleGeminiStreamToNonStreaming(c *gin.Cont
 
 			// 记录首 token 时间
 			if firstTokenMs == nil {
-				ms := int(time.Since(startTime).Milliseconds())
-				firstTokenMs = &ms
+				firstTokenMs = new(int(time.Since(startTime).Milliseconds()))
 			}
 
 			last = parsed
@@ -3496,8 +3492,7 @@ func (s *AntigravityGatewayService) handleClaudeStreamToNonStreaming(c *gin.Cont
 
 			// 记录首 token 时间
 			if firstTokenMs == nil {
-				ms := int(time.Since(startTime).Milliseconds())
-				firstTokenMs = &ms
+				firstTokenMs = new(int(time.Since(startTime).Milliseconds()))
 			}
 
 			last = parsed
@@ -3693,8 +3688,7 @@ func (s *AntigravityGatewayService) handleClaudeStreamingResponse(c *gin.Context
 			claudeEvents := processor.ProcessLine(strings.TrimRight(ev.line, "\r\n"))
 			if len(claudeEvents) > 0 {
 				if firstTokenMs == nil {
-					ms := int(time.Since(startTime).Milliseconds())
-					firstTokenMs = &ms
+					firstTokenMs = new(int(time.Since(startTime).Milliseconds()))
 				}
 				cw.Write(claudeEvents)
 			}
@@ -4060,8 +4054,7 @@ func (s *AntigravityGatewayService) streamUpstreamResponse(c *gin.Context, resp 
 
 			// 记录首 token 时间
 			if firstTokenMs == nil && len(line) > 0 {
-				ms := int(time.Since(startTime).Milliseconds())
-				firstTokenMs = &ms
+				firstTokenMs = new(int(time.Since(startTime).Milliseconds()))
 			}
 
 			// 尝试从 message_delta 或 message_stop 事件提取 usage

@@ -180,8 +180,7 @@ func TestApiKeyAuthWithSubscriptionGoogleSetsGroupContext(t *testing.T) {
 				if key != apiKey.Key {
 					return nil, service.ErrAPIKeyNotFound
 				}
-				clone := *apiKey
-				return &clone, nil
+				return new(*apiKey), nil
 			},
 		},
 		nil,

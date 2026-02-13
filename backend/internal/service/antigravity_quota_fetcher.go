@@ -50,9 +50,8 @@ func (f *AntigravityQuotaFetcher) FetchQuota(ctx context.Context, account *Accou
 
 // buildUsageInfo 将 API 响应转换为 UsageInfo
 func (f *AntigravityQuotaFetcher) buildUsageInfo(modelsResp *antigravity.FetchAvailableModelsResponse) *UsageInfo {
-	now := time.Now()
 	info := &UsageInfo{
-		UpdatedAt:        &now,
+		UpdatedAt:        new(time.Now()),
 		AntigravityQuota: make(map[string]*AntigravityModelQuota),
 	}
 

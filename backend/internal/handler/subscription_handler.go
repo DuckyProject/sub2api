@@ -164,8 +164,7 @@ func (h *SubscriptionHandler) GetSummary(c *gin.Context) {
 
 		// Format expiration time
 		if !sub.ExpiresAt.IsZero() {
-			formatted := sub.ExpiresAt.Format("2006-01-02T15:04:05Z07:00")
-			item.ExpiresAt = &formatted
+			item.ExpiresAt = new(sub.ExpiresAt.Format("2006-01-02T15:04:05Z07:00"))
 		}
 
 		// Track total usage (use monthly as the most comprehensive)

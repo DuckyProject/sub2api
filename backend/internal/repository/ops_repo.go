@@ -240,40 +240,32 @@ LIMIT $` + itoa(len(args)+1) + ` OFFSET $` + itoa(len(args)+2)
 			return nil, err
 		}
 		if resolvedAt.Valid {
-			t := resolvedAt.Time
-			item.ResolvedAt = &t
+			item.ResolvedAt = new(resolvedAt.Time)
 		}
 		if resolvedBy.Valid {
-			v := resolvedBy.Int64
-			item.ResolvedByUserID = &v
+			item.ResolvedByUserID = new(resolvedBy.Int64)
 		}
 		item.ResolvedByUserName = resolvedByName
 		if resolvedRetryID.Valid {
-			v := resolvedRetryID.Int64
-			item.ResolvedRetryID = &v
+			item.ResolvedRetryID = new(resolvedRetryID.Int64)
 		}
 		item.StatusCode = int(statusCode.Int64)
 		if clientIP.Valid {
-			s := clientIP.String
-			item.ClientIP = &s
+			item.ClientIP = new(clientIP.String)
 		}
 		if userID.Valid {
-			v := userID.Int64
-			item.UserID = &v
+			item.UserID = new(userID.Int64)
 		}
 		item.UserEmail = userEmail
 		if apiKeyID.Valid {
-			v := apiKeyID.Int64
-			item.APIKeyID = &v
+			item.APIKeyID = new(apiKeyID.Int64)
 		}
 		if accountID.Valid {
-			v := accountID.Int64
-			item.AccountID = &v
+			item.AccountID = new(accountID.Int64)
 		}
 		item.AccountName = accountName
 		if groupID.Valid {
-			v := groupID.Int64
-			item.GroupID = &v
+			item.GroupID = new(groupID.Int64)
 		}
 		item.GroupName = groupName
 		out = append(out, &item)
@@ -423,64 +415,49 @@ LIMIT 1`
 
 	out.StatusCode = int(statusCode.Int64)
 	if resolvedAt.Valid {
-		t := resolvedAt.Time
-		out.ResolvedAt = &t
+		out.ResolvedAt = new(resolvedAt.Time)
 	}
 	if resolvedBy.Valid {
-		v := resolvedBy.Int64
-		out.ResolvedByUserID = &v
+		out.ResolvedByUserID = new(resolvedBy.Int64)
 	}
 	if resolvedRetryID.Valid {
-		v := resolvedRetryID.Int64
-		out.ResolvedRetryID = &v
+		out.ResolvedRetryID = new(resolvedRetryID.Int64)
 	}
 	if clientIP.Valid {
-		s := clientIP.String
-		out.ClientIP = &s
+		out.ClientIP = new(clientIP.String)
 	}
 	if upstreamStatusCode.Valid && upstreamStatusCode.Int64 > 0 {
-		v := int(upstreamStatusCode.Int64)
-		out.UpstreamStatusCode = &v
+		out.UpstreamStatusCode = new(int(upstreamStatusCode.Int64))
 	}
 	if userID.Valid {
-		v := userID.Int64
-		out.UserID = &v
+		out.UserID = new(userID.Int64)
 	}
 	if apiKeyID.Valid {
-		v := apiKeyID.Int64
-		out.APIKeyID = &v
+		out.APIKeyID = new(apiKeyID.Int64)
 	}
 	if accountID.Valid {
-		v := accountID.Int64
-		out.AccountID = &v
+		out.AccountID = new(accountID.Int64)
 	}
 	if groupID.Valid {
-		v := groupID.Int64
-		out.GroupID = &v
+		out.GroupID = new(groupID.Int64)
 	}
 	if authLatency.Valid {
-		v := authLatency.Int64
-		out.AuthLatencyMs = &v
+		out.AuthLatencyMs = new(authLatency.Int64)
 	}
 	if routingLatency.Valid {
-		v := routingLatency.Int64
-		out.RoutingLatencyMs = &v
+		out.RoutingLatencyMs = new(routingLatency.Int64)
 	}
 	if upstreamLatency.Valid {
-		v := upstreamLatency.Int64
-		out.UpstreamLatencyMs = &v
+		out.UpstreamLatencyMs = new(upstreamLatency.Int64)
 	}
 	if responseLatency.Valid {
-		v := responseLatency.Int64
-		out.ResponseLatencyMs = &v
+		out.ResponseLatencyMs = new(responseLatency.Int64)
 	}
 	if ttft.Valid {
-		v := ttft.Int64
-		out.TimeToFirstTokenMs = &v
+		out.TimeToFirstTokenMs = new(ttft.Int64)
 	}
 	if requestBodyBytes.Valid {
-		v := int(requestBodyBytes.Int64)
-		out.RequestBodyBytes = &v
+		out.RequestBodyBytes = new(int(requestBodyBytes.Int64))
 	}
 
 	// Normalize request_body to empty string when stored as JSON null.
@@ -669,56 +646,43 @@ LIMIT 1`
 	}
 	out.RequestedByUserID = requestedBy.Int64
 	if pinnedAccountID.Valid {
-		v := pinnedAccountID.Int64
-		out.PinnedAccountID = &v
+		out.PinnedAccountID = new(pinnedAccountID.Int64)
 	}
 	if startedAt.Valid {
-		t := startedAt.Time
-		out.StartedAt = &t
+		out.StartedAt = new(startedAt.Time)
 	}
 	if finishedAt.Valid {
-		t := finishedAt.Time
-		out.FinishedAt = &t
+		out.FinishedAt = new(finishedAt.Time)
 	}
 	if durationMs.Valid {
-		v := durationMs.Int64
-		out.DurationMs = &v
+		out.DurationMs = new(durationMs.Int64)
 	}
 	if success.Valid {
-		v := success.Bool
-		out.Success = &v
+		out.Success = new(success.Bool)
 	}
 	if httpStatusCode.Valid {
-		v := int(httpStatusCode.Int64)
-		out.HTTPStatusCode = &v
+		out.HTTPStatusCode = new(int(httpStatusCode.Int64))
 	}
 	if upstreamRequestID.Valid {
-		s := upstreamRequestID.String
-		out.UpstreamRequestID = &s
+		out.UpstreamRequestID = new(upstreamRequestID.String)
 	}
 	if usedAccountID.Valid {
-		v := usedAccountID.Int64
-		out.UsedAccountID = &v
+		out.UsedAccountID = new(usedAccountID.Int64)
 	}
 	if responsePreview.Valid {
-		s := responsePreview.String
-		out.ResponsePreview = &s
+		out.ResponsePreview = new(responsePreview.String)
 	}
 	if responseTruncated.Valid {
-		v := responseTruncated.Bool
-		out.ResponseTruncated = &v
+		out.ResponseTruncated = new(responseTruncated.Bool)
 	}
 	if resultRequestID.Valid {
-		s := resultRequestID.String
-		out.ResultRequestID = &s
+		out.ResultRequestID = new(resultRequestID.String)
 	}
 	if resultErrorID.Valid {
-		v := resultErrorID.Int64
-		out.ResultErrorID = &v
+		out.ResultErrorID = new(resultErrorID.Int64)
 	}
 	if errorMessage.Valid {
-		s := errorMessage.String
-		out.ErrorMessage = &s
+		out.ErrorMessage = new(errorMessage.String)
 	}
 
 	return &out, nil
@@ -836,51 +800,42 @@ LIMIT $2`
 
 		item.RequestedByUserID = requestedBy.Int64
 		if pinnedAccountID.Valid {
-			v := pinnedAccountID.Int64
-			item.PinnedAccountID = &v
+			item.PinnedAccountID = new(pinnedAccountID.Int64)
 		}
 		item.PinnedAccountName = pinnedAccountName
 		if startedAt.Valid {
-			t := startedAt.Time
-			item.StartedAt = &t
+			item.StartedAt = new(startedAt.Time)
 		}
 		if finishedAt.Valid {
-			t := finishedAt.Time
-			item.FinishedAt = &t
+			item.FinishedAt = new(finishedAt.Time)
 		}
 		if durationMs.Valid {
-			v := durationMs.Int64
-			item.DurationMs = &v
+			item.DurationMs = new(durationMs.Int64)
 		}
 		if success.Valid {
-			v := success.Bool
-			item.Success = &v
+			item.Success = new(success.Bool)
 		}
 		if httpStatusCode.Valid {
-			v := int(httpStatusCode.Int64)
-			item.HTTPStatusCode = &v
+			item.HTTPStatusCode = new(int(httpStatusCode.Int64))
 		}
 		if upstreamRequestID.Valid {
 			item.UpstreamRequestID = &upstreamRequestID.String
 		}
 		if usedAccountID.Valid {
-			v := usedAccountID.Int64
-			item.UsedAccountID = &v
+			item.UsedAccountID = new(usedAccountID.Int64)
 		}
 		item.UsedAccountName = usedAccountName
 		if responsePreview.Valid {
 			item.ResponsePreview = &responsePreview.String
 		}
 		if responseTruncated.Valid {
-			v := responseTruncated.Bool
-			item.ResponseTruncated = &v
+			item.ResponseTruncated = new(responseTruncated.Bool)
 		}
 		if resultRequestID.Valid {
 			item.ResultRequestID = &resultRequestID.String
 		}
 		if resultErrorID.Valid {
-			v := resultErrorID.Int64
-			item.ResultErrorID = &v
+			item.ResultErrorID = new(resultErrorID.Int64)
 		}
 		if errorMessage.Valid {
 			item.ErrorMessage = &errorMessage.String

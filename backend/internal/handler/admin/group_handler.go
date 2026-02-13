@@ -96,8 +96,7 @@ func (h *GroupHandler) List(c *gin.Context) {
 
 	var isExclusive *bool
 	if isExclusiveStr != "" {
-		val := isExclusiveStr == "true"
-		isExclusive = &val
+		isExclusive = new(isExclusiveStr == "true")
 	}
 
 	groups, total, err := h.adminService.ListGroups(c.Request.Context(), page, pageSize, platform, status, search, isExclusive)

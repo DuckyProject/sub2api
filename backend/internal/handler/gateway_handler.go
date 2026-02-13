@@ -358,8 +358,7 @@ func (h *GatewayHandler) Messages(c *gin.Context) {
 				accountReleaseFunc()
 			}
 			if err != nil {
-				var failoverErr *service.UpstreamFailoverError
-				if errors.As(err, &failoverErr) {
+				if failoverErr, ok2 := errors.AsType[*service.UpstreamFailoverError](err); ok2 {
 					lastFailoverErr = failoverErr
 					if needForceCacheBilling(hasBoundSession, failoverErr) {
 						forceCacheBilling = true
@@ -561,8 +560,7 @@ func (h *GatewayHandler) Messages(c *gin.Context) {
 				accountReleaseFunc()
 			}
 			if err != nil {
-				var promptTooLongErr *service.PromptTooLongError
-				if errors.As(err, &promptTooLongErr) {
+				if promptTooLongErr, ok2 := errors.AsType[*service.PromptTooLongError](err); ok2 {
 					log.Printf("Prompt too long from antigravity: group=%d fallback_group_id=%v fallback_used=%v", currentAPIKey.GroupID, fallbackGroupID, fallbackUsed)
 					if !fallbackUsed && fallbackGroupID != nil && *fallbackGroupID > 0 {
 						fallbackGroup, err := h.gatewayService.ResolveGroupByID(c.Request.Context(), *fallbackGroupID)
@@ -596,8 +594,7 @@ func (h *GatewayHandler) Messages(c *gin.Context) {
 					_ = h.antigravityGatewayService.WriteMappedClaudeError(c, account, promptTooLongErr.StatusCode, promptTooLongErr.RequestID, promptTooLongErr.Body)
 					return
 				}
-				var failoverErr *service.UpstreamFailoverError
-				if errors.As(err, &failoverErr) {
+				if failoverErr, ok2 := errors.AsType[*service.UpstreamFailoverError](err); ok2 {
 					lastFailoverErr = failoverErr
 					if needForceCacheBilling(hasBoundSession, failoverErr) {
 						forceCacheBilling = true
@@ -733,8 +730,7 @@ func cloneAPIKeyWithGroup(apiKey *service.APIKey, group *service.Group) *service
 		return apiKey
 	}
 	cloned := *apiKey
-	groupID := group.ID
-	cloned.GroupID = &groupID
+	cloned.GroupID = new(group.ID)
 	cloned.Group = group
 	return &cloned
 }

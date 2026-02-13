@@ -287,8 +287,7 @@ func (h *OpenAIGatewayHandler) Responses(c *gin.Context) {
 			accountReleaseFunc()
 		}
 		if err != nil {
-			var failoverErr *service.UpstreamFailoverError
-			if errors.As(err, &failoverErr) {
+			if failoverErr, ok2 := errors.AsType[*service.UpstreamFailoverError](err); ok2 {
 				failedAccountIDs[account.ID] = struct{}{}
 				lastFailoverErr = failoverErr
 				if switchCount >= maxAccountSwitches {

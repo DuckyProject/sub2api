@@ -149,8 +149,7 @@ func marshalOpsUpstreamErrors(events []*OpsUpstreamErrorEvent) *string {
 	if err != nil || len(raw) == 0 {
 		return nil
 	}
-	s := string(raw)
-	return &s
+	return new(string(raw))
 }
 
 func ParseOpsUpstreamErrors(raw string) ([]*OpsUpstreamErrorEvent, error) {

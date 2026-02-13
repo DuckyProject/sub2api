@@ -193,28 +193,25 @@ func (c *OpsMetricsCollector) collectOnce() {
 	runAt := startedAt
 
 	if err != nil {
-		msg := truncateString(err.Error(), 2048)
-		errAt := finishedAt
 		hbCtx, hbCancel := context.WithTimeout(context.Background(), opsMetricsCollectorHeartbeatTimeout)
 		defer hbCancel()
 		_ = c.opsRepo.UpsertJobHeartbeat(hbCtx, &OpsUpsertJobHeartbeatInput{
 			JobName:        opsMetricsCollectorJobName,
 			LastRunAt:      &runAt,
-			LastErrorAt:    &errAt,
-			LastError:      &msg,
+			LastErrorAt:    new(finishedAt),
+			LastError:      new(truncateString(err.Error(), 2048)),
 			LastDurationMs: &dur,
 		})
 		log.Printf("[OpsMetricsCollector] collect failed: %v", err)
 		return
 	}
 
-	successAt := finishedAt
 	hbCtx, hbCancel := context.WithTimeout(context.Background(), opsMetricsCollectorHeartbeatTimeout)
 	defer hbCancel()
 	_ = c.opsRepo.UpsertJobHeartbeat(hbCtx, &OpsUpsertJobHeartbeatInput{
 		JobName:        opsMetricsCollectorJobName,
 		LastRunAt:      &runAt,
-		LastSuccessAt:  &successAt,
+		LastSuccessAt:  new(finishedAt),
 		LastDurationMs: &dur,
 	})
 }
@@ -380,8 +377,7 @@ func (c *OpsMetricsCollector) collectConcurrencyQueueDepth(parentCtx context.Con
 		return nil
 	}
 	if len(accounts) == 0 {
-		zero := 0
-		return &zero
+		return new(0)
 	}
 
 	batch := make([]AccountWithConcurrency, 0, len(accounts))
@@ -399,8 +395,7 @@ func (c *OpsMetricsCollector) collectConcurrencyQueueDepth(parentCtx context.Con
 		})
 	}
 	if len(batch) == 0 {
-		zero := 0
-		return &zero
+		return new(0)
 	}
 
 	loadMap, err := c.concurrencyService.GetAccountsLoadBatch(ctx, batch)
@@ -423,8 +418,7 @@ func (c *OpsMetricsCollector) collectConcurrencyQueueDepth(parentCtx context.Con
 	if total > maxInt {
 		total = maxInt
 	}
-	v := int(total)
-	return &v
+	return new(int(total))
 }
 
 type opsCollectedPercentiles struct {
@@ -479,12 +473,10 @@ WHERE created_at >= $1 AND created_at < $2
 		duration.p95 = floatToIntPtr(p95)
 		duration.p99 = floatToIntPtr(p99)
 		if avg.Valid {
-			v := roundTo1DP(avg.Float64)
-			duration.avg = &v
+			duration.avg = new(roundTo1DP(avg.Float64))
 		}
 		if max.Valid {
-			v := int(max.Int64)
-			duration.max = &v
+			duration.max = new(int(max.Int64))
 		}
 	}
 
@@ -512,12 +504,10 @@ WHERE created_at >= $1 AND created_at < $2
 		ttft.p95 = floatToIntPtr(p95)
 		ttft.p99 = floatToIntPtr(p99)
 		if avg.Valid {
-			v := roundTo1DP(avg.Float64)
-			ttft.avg = &v
+			ttft.avg = new(roundTo1DP(avg.Float64))
 		}
 		if max.Valid {
-			v := int(max.Int64)
-			ttft.max = &v
+			ttft.max = new(int(max.Int64))
 		}
 	}
 
@@ -600,21 +590,17 @@ func (c *OpsMetricsCollector) collectSystemStats(ctx context.Context) (*opsColle
 
 	cgroupUsed, cgroupTotal, cgroupOK := readCgroupMemoryBytes()
 	if cgroupOK {
-		usedMB := int64(cgroupUsed / bytesPerMB)
-		out.memoryUsedMB = &usedMB
+		out.memoryUsedMB = new(int64(cgroupUsed / bytesPerMB))
 		if cgroupTotal > 0 {
-			totalMB := int64(cgroupTotal / bytesPerMB)
-			out.memoryTotalMB = &totalMB
-			pct := roundTo1DP(float64(cgroupUsed) / float64(cgroupTotal) * 100)
-			out.memoryUsagePercent = &pct
+			out.memoryTotalMB = new(int64(cgroupTotal / bytesPerMB))
+			out.memoryUsagePercent = new(roundTo1DP(float64(cgroupUsed) / float64(cgroupTotal) * 100))
 		}
 	}
 
 	// Fallback to host metrics if cgroup metrics are unavailable (or incomplete).
 	if out.cpuUsagePercent == nil {
 		if cpuPercents, err := cpu.PercentWithContext(ctx, 0, false); err == nil && len(cpuPercents) > 0 {
-			v := roundTo1DP(cpuPercents[0])
-			out.cpuUsagePercent = &v
+			out.cpuUsagePercent = new(roundTo1DP(cpuPercents[0]))
 		}
 	}
 
@@ -622,20 +608,16 @@ func (c *OpsMetricsCollector) collectSystemStats(ctx context.Context) (*opsColle
 	if out.memoryUsedMB == nil || out.memoryTotalMB == nil || out.memoryUsagePercent == nil {
 		if vm, err := mem.VirtualMemoryWithContext(ctx); err == nil && vm != nil {
 			if out.memoryUsedMB == nil {
-				usedMB := int64(vm.Used / bytesPerMB)
-				out.memoryUsedMB = &usedMB
+				out.memoryUsedMB = new(int64(vm.Used / bytesPerMB))
 			}
 			if out.memoryTotalMB == nil {
-				totalMB := int64(vm.Total / bytesPerMB)
-				out.memoryTotalMB = &totalMB
+				out.memoryTotalMB = new(int64(vm.Total / bytesPerMB))
 			}
 			if out.memoryUsagePercent == nil {
 				if out.memoryUsedMB != nil && out.memoryTotalMB != nil && *out.memoryTotalMB > 0 {
-					pct := roundTo1DP(float64(*out.memoryUsedMB) / float64(*out.memoryTotalMB) * 100)
-					out.memoryUsagePercent = &pct
+					out.memoryUsagePercent = new(roundTo1DP(float64(*out.memoryUsedMB) / float64(*out.memoryTotalMB) * 100))
 				} else {
-					pct := roundTo1DP(vm.UsedPercent)
-					out.memoryUsagePercent = &pct
+					out.memoryUsagePercent = new(roundTo1DP(vm.UsedPercent))
 				}
 			}
 		}
@@ -693,8 +675,7 @@ func (c *OpsMetricsCollector) tryCgroupCPUPercent(now time.Time) *float64 {
 	if pct > 100 {
 		pct = 100
 	}
-	v := roundTo1DP(pct)
-	return &v
+	return new(roundTo1DP(pct))
 }
 
 func readCgroupMemoryBytes() (usedBytes uint64, totalBytes uint64, ok bool) {
@@ -909,8 +890,7 @@ func floatToIntPtr(v sql.NullFloat64) *int {
 	if !v.Valid {
 		return nil
 	}
-	n := int(math.Round(v.Float64))
-	return &n
+	return new(int(math.Round(v.Float64)))
 }
 
 func roundTo1DP(v float64) float64 {
@@ -932,16 +912,13 @@ func truncateString(s string, max int) string {
 }
 
 func boolPtr(v bool) *bool {
-	out := v
-	return &out
+	return new(v)
 }
 
 func intPtr(v int) *int {
-	out := v
-	return &out
+	return new(v)
 }
 
 func float64Ptr(v float64) *float64 {
-	out := v
-	return &out
+	return new(v)
 }

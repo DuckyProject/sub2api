@@ -15,13 +15,11 @@ func TestAccount_BillingRateMultiplier_DefaultsToOneWhenNil(t *testing.T) {
 }
 
 func TestAccount_BillingRateMultiplier_AllowsZero(t *testing.T) {
-	v := 0.0
-	a := Account{RateMultiplier: &v}
+	a := Account{RateMultiplier: new(0.0)}
 	require.Equal(t, 0.0, a.BillingRateMultiplier())
 }
 
 func TestAccount_BillingRateMultiplier_NegativeFallsBackToOne(t *testing.T) {
-	v := -1.0
-	a := Account{RateMultiplier: &v}
+	a := Account{RateMultiplier: new(-1.0)}
 	require.Equal(t, 1.0, a.BillingRateMultiplier())
 }

@@ -116,7 +116,6 @@ func (s *OpsService) GetConcurrencyStats(
 		return nil, nil, nil, nil, err
 	}
 
-	collectedAt := time.Now()
 	loadMap := s.getAccountsLoadMapBestEffort(ctx, accounts)
 
 	platform := make(map[string]*PlatformConcurrencyInfo)
@@ -253,7 +252,7 @@ func (s *OpsService) GetConcurrencyStats(
 		}
 	}
 
-	return platform, group, account, &collectedAt, nil
+	return platform, group, account, new(time.Now()), nil
 }
 
 // listAllActiveUsersForOps returns all active users with their concurrency settings.
@@ -355,7 +354,6 @@ func (s *OpsService) GetUserConcurrencyStats(ctx context.Context) (map[int64]*Us
 		return nil, nil, err
 	}
 
-	collectedAt := time.Now()
 	loadMap := s.getUsersLoadMapBestEffort(ctx, users)
 
 	result := make(map[int64]*UserConcurrencyInfo)
@@ -392,5 +390,5 @@ func (s *OpsService) GetUserConcurrencyStats(ctx context.Context) (map[int64]*Us
 		result[u.ID] = info
 	}
 
-	return result, &collectedAt, nil
+	return result, new(time.Now()), nil
 }

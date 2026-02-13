@@ -219,30 +219,26 @@ func (s *OpsAggregationService) aggregateHourly() {
 	dur := durationMs
 
 	if aggErr != nil {
-		msg := truncateString(aggErr.Error(), 2048)
-		errAt := finishedAt
 		hbCtx, hbCancel := context.WithTimeout(context.Background(), 2*time.Second)
 		defer hbCancel()
 		_ = s.opsRepo.UpsertJobHeartbeat(hbCtx, &OpsUpsertJobHeartbeatInput{
 			JobName:        opsAggHourlyJobName,
 			LastRunAt:      &runAt,
-			LastErrorAt:    &errAt,
-			LastError:      &msg,
+			LastErrorAt:    new(finishedAt),
+			LastError:      new(truncateString(aggErr.Error(), 2048)),
 			LastDurationMs: &dur,
 		})
 		return
 	}
 
-	successAt := finishedAt
 	hbCtx, hbCancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer hbCancel()
-	result := truncateString(fmt.Sprintf("window=%s..%s", start.Format(time.RFC3339), end.Format(time.RFC3339)), 2048)
 	_ = s.opsRepo.UpsertJobHeartbeat(hbCtx, &OpsUpsertJobHeartbeatInput{
 		JobName:        opsAggHourlyJobName,
 		LastRunAt:      &runAt,
-		LastSuccessAt:  &successAt,
+		LastSuccessAt:  new(finishedAt),
 		LastDurationMs: &dur,
-		LastResult:     &result,
+		LastResult:     new(truncateString(fmt.Sprintf("window=%s..%s", start.Format(time.RFC3339), end.Format(time.RFC3339)), 2048)),
 	})
 }
 
@@ -317,30 +313,26 @@ func (s *OpsAggregationService) aggregateDaily() {
 	dur := durationMs
 
 	if aggErr != nil {
-		msg := truncateString(aggErr.Error(), 2048)
-		errAt := finishedAt
 		hbCtx, hbCancel := context.WithTimeout(context.Background(), 2*time.Second)
 		defer hbCancel()
 		_ = s.opsRepo.UpsertJobHeartbeat(hbCtx, &OpsUpsertJobHeartbeatInput{
 			JobName:        opsAggDailyJobName,
 			LastRunAt:      &runAt,
-			LastErrorAt:    &errAt,
-			LastError:      &msg,
+			LastErrorAt:    new(finishedAt),
+			LastError:      new(truncateString(aggErr.Error(), 2048)),
 			LastDurationMs: &dur,
 		})
 		return
 	}
 
-	successAt := finishedAt
 	hbCtx, hbCancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer hbCancel()
-	result := truncateString(fmt.Sprintf("window=%s..%s", start.Format(time.RFC3339), end.Format(time.RFC3339)), 2048)
 	_ = s.opsRepo.UpsertJobHeartbeat(hbCtx, &OpsUpsertJobHeartbeatInput{
 		JobName:        opsAggDailyJobName,
 		LastRunAt:      &runAt,
-		LastSuccessAt:  &successAt,
+		LastSuccessAt:  new(finishedAt),
 		LastDurationMs: &dur,
-		LastResult:     &result,
+		LastResult:     new(truncateString(fmt.Sprintf("window=%s..%s", start.Format(time.RFC3339), end.Format(time.RFC3339)), 2048)),
 	})
 }
 

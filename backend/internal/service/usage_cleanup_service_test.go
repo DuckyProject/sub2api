@@ -105,8 +105,7 @@ func (s *cleanupRepoStub) CreateTask(ctx context.Context, task *UsageCleanupTask
 	if task.UpdatedAt.IsZero() {
 		task.UpdatedAt = task.CreatedAt
 	}
-	clone := *task
-	s.created = append(s.created, &clone)
+	s.created = append(s.created, new(*task))
 	return nil
 }
 
@@ -232,17 +231,14 @@ func TestUsageCleanupServiceCreateTaskSanitizeFilters(t *testing.T) {
 
 	start := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
 	end := start.Add(24 * time.Hour)
-	userID := int64(-1)
 	apiKeyID := int64(10)
-	model := "  gpt-4  "
-	billingType := int8(-2)
 	filters := UsageCleanupFilters{
 		StartTime:   start,
 		EndTime:     end,
-		UserID:      &userID,
+		UserID:      new(int64(-1)),
 		APIKeyID:    &apiKeyID,
-		Model:       &model,
-		BillingType: &billingType,
+		Model:       new("  gpt-4  "),
+		BillingType: new(int8(-2)),
 	}
 
 	task, err := svc.CreateTask(context.Background(), filters, 9)
@@ -645,12 +641,11 @@ func TestUsageCleanupServiceCancelTaskConflict(t *testing.T) {
 }
 
 func TestUsageCleanupServiceCancelTaskRepoConflict(t *testing.T) {
-	shouldCancel := false
 	repo := &cleanupRepoStub{
 		statusByID: map[int64]string{
 			7: UsageCleanupStatusPending,
 		},
-		cancelResult: &shouldCancel,
+		cancelResult: new(false),
 	}
 	cfg := &config.Config{UsageCleanup: config.UsageCleanupConfig{Enabled: true}}
 	svc := NewUsageCleanupService(repo, nil, nil, cfg)
@@ -753,16 +748,13 @@ func TestUsageCleanupServiceDefaultsAndLifecycle(t *testing.T) {
 }
 
 func TestSanitizeUsageCleanupFiltersModelEmpty(t *testing.T) {
-	model := "   "
 	apiKeyID := int64(-5)
-	accountID := int64(-1)
-	groupID := int64(-2)
 	filters := UsageCleanupFilters{
 		UserID:    &apiKeyID,
 		APIKeyID:  &apiKeyID,
-		AccountID: &accountID,
-		GroupID:   &groupID,
-		Model:     &model,
+		AccountID: new(int64(-1)),
+		GroupID:   new(int64(-2)),
+		Model:     new("   "),
 	}
 
 	sanitizeUsageCleanupFilters(&filters)
@@ -776,23 +768,16 @@ func TestSanitizeUsageCleanupFiltersModelEmpty(t *testing.T) {
 func TestDescribeUsageCleanupFiltersAllFields(t *testing.T) {
 	start := time.Date(2024, 2, 1, 10, 0, 0, 0, time.UTC)
 	end := start.Add(2 * time.Hour)
-	userID := int64(1)
-	apiKeyID := int64(2)
-	accountID := int64(3)
-	groupID := int64(4)
-	model := " gpt-4 "
-	stream := true
-	billingType := int8(2)
 	filters := UsageCleanupFilters{
 		StartTime:   start,
 		EndTime:     end,
-		UserID:      &userID,
-		APIKeyID:    &apiKeyID,
-		AccountID:   &accountID,
-		GroupID:     &groupID,
-		Model:       &model,
-		Stream:      &stream,
-		BillingType: &billingType,
+		UserID:      new(int64(1)),
+		APIKeyID:    new(int64(2)),
+		AccountID:   new(int64(3)),
+		GroupID:     new(int64(4)),
+		Model:       new(" gpt-4 "),
+		Stream:      new(true),
+		BillingType: new(int8(2)),
 	}
 
 	desc := describeUsageCleanupFilters(filters)

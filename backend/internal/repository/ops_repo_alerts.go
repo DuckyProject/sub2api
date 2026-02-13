@@ -69,8 +69,7 @@ ORDER BY id DESC`
 			return nil, err
 		}
 		if lastTriggeredAt.Valid {
-			v := lastTriggeredAt.Time
-			rule.LastTriggeredAt = &v
+			rule.LastTriggeredAt = new(lastTriggeredAt.Time)
 		}
 		if len(filtersRaw) > 0 && string(filtersRaw) != "null" {
 			var decoded map[string]any
@@ -176,8 +175,7 @@ RETURNING
 		return nil, err
 	}
 	if lastTriggeredAt.Valid {
-		v := lastTriggeredAt.Time
-		out.LastTriggeredAt = &v
+		out.LastTriggeredAt = new(lastTriggeredAt.Time)
 	}
 	if len(filtersRaw) > 0 && string(filtersRaw) != "null" {
 		var decoded map[string]any
@@ -282,8 +280,7 @@ RETURNING
 	}
 
 	if lastTriggeredAt.Valid {
-		v := lastTriggeredAt.Time
-		out.LastTriggeredAt = &v
+		out.LastTriggeredAt = new(lastTriggeredAt.Time)
 	}
 	if len(filtersRaw) > 0 && string(filtersRaw) != "null" {
 		var decoded map[string]any
@@ -388,16 +385,13 @@ LIMIT ` + limitArg
 			return nil, err
 		}
 		if metricValue.Valid {
-			v := metricValue.Float64
-			ev.MetricValue = &v
+			ev.MetricValue = new(metricValue.Float64)
 		}
 		if thresholdValue.Valid {
-			v := thresholdValue.Float64
-			ev.ThresholdValue = &v
+			ev.ThresholdValue = new(thresholdValue.Float64)
 		}
 		if resolvedAt.Valid {
-			v := resolvedAt.Time
-			ev.ResolvedAt = &v
+			ev.ResolvedAt = new(resolvedAt.Time)
 		}
 		if len(dimensionsRaw) > 0 && string(dimensionsRaw) != "null" {
 			var decoded map[string]any
@@ -691,8 +685,7 @@ RETURNING id, rule_id, platform, group_id, region, until, COALESCE(reason,''), c
 		return nil, err
 	}
 	if groupID.Valid {
-		v := groupID.Int64
-		out.GroupID = &v
+		out.GroupID = new(groupID.Int64)
 	}
 	if region.Valid {
 		v := strings.TrimSpace(region.String)
@@ -701,8 +694,7 @@ RETURNING id, rule_id, platform, group_id, region, until, COALESCE(reason,''), c
 		}
 	}
 	if createdBy.Valid {
-		v := createdBy.Int64
-		out.CreatedBy = &v
+		out.CreatedBy = new(createdBy.Int64)
 	}
 	return &out, nil
 }
@@ -768,16 +760,13 @@ func scanOpsAlertEvent(row opsAlertEventRow) (*service.OpsAlertEvent, error) {
 		return nil, err
 	}
 	if metricValue.Valid {
-		v := metricValue.Float64
-		ev.MetricValue = &v
+		ev.MetricValue = new(metricValue.Float64)
 	}
 	if thresholdValue.Valid {
-		v := thresholdValue.Float64
-		ev.ThresholdValue = &v
+		ev.ThresholdValue = new(thresholdValue.Float64)
 	}
 	if resolvedAt.Valid {
-		v := resolvedAt.Time
-		ev.ResolvedAt = &v
+		ev.ResolvedAt = new(resolvedAt.Time)
 	}
 	if len(dimensionsRaw) > 0 && string(dimensionsRaw) != "null" {
 		var decoded map[string]any

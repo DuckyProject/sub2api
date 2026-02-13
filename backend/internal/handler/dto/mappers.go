@@ -33,15 +33,13 @@ func UserFromService(u *service.User) *User {
 	if len(u.APIKeys) > 0 {
 		out.APIKeys = make([]APIKey, 0, len(u.APIKeys))
 		for i := range u.APIKeys {
-			k := u.APIKeys[i]
-			out.APIKeys = append(out.APIKeys, *APIKeyFromService(&k))
+			out.APIKeys = append(out.APIKeys, *APIKeyFromService(new(u.APIKeys[i])))
 		}
 	}
 	if len(u.Subscriptions) > 0 {
 		out.Subscriptions = make([]UserSubscription, 0, len(u.Subscriptions))
 		for i := range u.Subscriptions {
-			s := u.Subscriptions[i]
-			out.Subscriptions = append(out.Subscriptions, *UserSubscriptionFromService(&s))
+			out.Subscriptions = append(out.Subscriptions, *UserSubscriptionFromService(new(u.Subscriptions[i])))
 		}
 	}
 	return out
@@ -91,8 +89,7 @@ func GroupFromServiceShallow(g *service.Group) *Group {
 	if g == nil {
 		return nil
 	}
-	out := groupFromServiceBase(g)
-	return &out
+	return new(groupFromServiceBase(g))
 }
 
 func GroupFromService(g *service.Group) *Group {
@@ -120,8 +117,7 @@ func GroupFromServiceAdmin(g *service.Group) *AdminGroup {
 	if len(g.AccountGroups) > 0 {
 		out.AccountGroups = make([]AccountGroup, 0, len(g.AccountGroups))
 		for i := range g.AccountGroups {
-			ag := g.AccountGroups[i]
-			out.AccountGroups = append(out.AccountGroups, *AccountGroupFromService(&ag))
+			out.AccountGroups = append(out.AccountGroups, *AccountGroupFromService(new(g.AccountGroups[i])))
 		}
 	}
 	return out
@@ -203,13 +199,11 @@ func AccountFromServiceShallow(a *service.Account) *Account {
 		}
 		// TLS指纹伪装开关
 		if a.IsTLSFingerprintEnabled() {
-			enabled := true
-			out.EnableTLSFingerprint = &enabled
+			out.EnableTLSFingerprint = new(true)
 		}
 		// 会话ID伪装开关
 		if a.IsSessionIDMaskingEnabled() {
-			enabled := true
-			out.EnableSessionIDMasking = &enabled
+			out.EnableSessionIDMasking = new(true)
 		}
 	}
 
@@ -225,8 +219,7 @@ func AccountFromService(a *service.Account) *Account {
 	if len(a.AccountGroups) > 0 {
 		out.AccountGroups = make([]AccountGroup, 0, len(a.AccountGroups))
 		for i := range a.AccountGroups {
-			ag := a.AccountGroups[i]
-			out.AccountGroups = append(out.AccountGroups, *AccountGroupFromService(&ag))
+			out.AccountGroups = append(out.AccountGroups, *AccountGroupFromService(new(a.AccountGroups[i])))
 		}
 	}
 	if len(a.Groups) > 0 {
@@ -242,8 +235,7 @@ func timeToUnixSeconds(value *time.Time) *int64 {
 	if value == nil {
 		return nil
 	}
-	ts := value.Unix()
-	return &ts
+	return new(value.Unix())
 }
 
 func AccountGroupFromService(ag *service.AccountGroup) *AccountGroup {
@@ -313,8 +305,7 @@ func RedeemCodeFromService(rc *service.RedeemCode) *RedeemCode {
 	if rc == nil {
 		return nil
 	}
-	out := redeemCodeFromServiceBase(rc)
-	return &out
+	return new(redeemCodeFromServiceBase(rc))
 }
 
 // RedeemCodeFromServiceAdmin converts a service RedeemCode to DTO for admin users.
@@ -412,8 +403,7 @@ func UsageLogFromService(l *service.UsageLog) *UsageLog {
 	if l == nil {
 		return nil
 	}
-	u := usageLogFromServiceUser(l)
-	return &u
+	return new(usageLogFromServiceUser(l))
 }
 
 // UsageLogFromServiceAdmin converts a service UsageLog to DTO for admin users.
@@ -476,8 +466,7 @@ func UserSubscriptionFromService(sub *service.UserSubscription) *UserSubscriptio
 	if sub == nil {
 		return nil
 	}
-	out := userSubscriptionFromServiceBase(sub)
-	return &out
+	return new(userSubscriptionFromServiceBase(sub))
 }
 
 // UserSubscriptionFromServiceAdmin converts a service UserSubscription to DTO for admin users.

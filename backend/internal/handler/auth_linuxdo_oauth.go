@@ -180,8 +180,7 @@ func (h *AuthHandler) LinuxDoOAuthCallback(c *gin.Context) {
 	tokenResp, err := linuxDoExchangeCode(c.Request.Context(), cfg, code, redirectURI, codeVerifier)
 	if err != nil {
 		description := ""
-		var exchangeErr *linuxDoTokenExchangeError
-		if errors.As(err, &exchangeErr) && exchangeErr != nil {
+		if exchangeErr, ok := errors.AsType[*linuxDoTokenExchangeError](err); ok && exchangeErr != nil {
 			log.Printf(
 				"[LinuxDo OAuth] token exchange failed: status=%d provider_error=%q provider_description=%q body=%s",
 				exchangeErr.StatusCode,

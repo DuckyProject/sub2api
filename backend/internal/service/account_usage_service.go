@@ -250,8 +250,7 @@ func (s *AccountUsageService) GetUsage(ctx context.Context, accountID int64) (*U
 		}
 
 		// 3. 构建 UsageInfo（每次都重新计算 RemainingSeconds）
-		now := time.Now()
-		usage := s.buildUsageInfo(apiResp, &now)
+		usage := s.buildUsageInfo(apiResp, new(time.Now()))
 
 		// 4. 添加窗口统计（有独立缓存，1 分钟）
 		s.addWindowStats(ctx, account, usage)
@@ -331,8 +330,7 @@ func (s *AccountUsageService) getGeminiUsage(ctx context.Context, account *Accou
 // getAntigravityUsage 获取 Antigravity 账户额度
 func (s *AccountUsageService) getAntigravityUsage(ctx context.Context, account *Account) (*UsageInfo, error) {
 	if s.antigravityQuotaFetcher == nil || !s.antigravityQuotaFetcher.CanFetch(account) {
-		now := time.Now()
-		return &UsageInfo{UpdatedAt: &now}, nil
+		return &UsageInfo{UpdatedAt: new(time.Now())}, nil
 	}
 
 	// 1. 检查缓存（10 分钟）
@@ -589,10 +587,9 @@ func buildGeminiUsageProgress(used, limit int64, resetAt time.Time, tokens int64
 	if remainingSeconds < 0 {
 		remainingSeconds = 0
 	}
-	resetCopy := resetAt
 	return &UsageProgress{
 		Utilization:      utilization,
-		ResetsAt:         &resetCopy,
+		ResetsAt:         new(resetAt),
 		RemainingSeconds: remainingSeconds,
 		UsedRequests:     used,
 		LimitRequests:    limit,

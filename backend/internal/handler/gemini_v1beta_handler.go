@@ -441,8 +441,7 @@ func (h *GatewayHandler) GeminiV1BetaModels(c *gin.Context) {
 			accountReleaseFunc()
 		}
 		if err != nil {
-			var failoverErr *service.UpstreamFailoverError
-			if errors.As(err, &failoverErr) {
+			if failoverErr, ok2 := errors.AsType[*service.UpstreamFailoverError](err); ok2 {
 				failedAccountIDs[account.ID] = struct{}{}
 				if needForceCacheBilling(hasBoundSession, failoverErr) {
 					forceCacheBilling = true

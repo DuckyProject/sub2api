@@ -1379,8 +1379,7 @@ func (s *OpenAIGatewayService) handleStreamingResponse(ctx context.Context, resp
 
 				// Record first token time
 				if firstTokenMs == nil && data != "" && data != "[DONE]" {
-					ms := int(time.Since(startTime).Milliseconds())
-					firstTokenMs = &ms
+					firstTokenMs = new(int(time.Since(startTime).Milliseconds()))
 				}
 				s.parseSSEUsage(data, usage)
 			} else {
@@ -1756,8 +1755,6 @@ func (s *OpenAIGatewayService) RecordUsage(ctx context.Context, input *OpenAIRec
 	}
 
 	// Create usage log
-	durationMs := int(result.Duration.Milliseconds())
-	accountRateMultiplier := account.BillingRateMultiplier()
 	usageLog := &UsageLog{
 		UserID:                user.ID,
 		APIKeyID:              apiKey.ID,
@@ -1776,10 +1773,10 @@ func (s *OpenAIGatewayService) RecordUsage(ctx context.Context, input *OpenAIRec
 		TotalCost:             cost.TotalCost,
 		ActualCost:            cost.ActualCost,
 		RateMultiplier:        multiplier,
-		AccountRateMultiplier: &accountRateMultiplier,
+		AccountRateMultiplier: new(account.BillingRateMultiplier()),
 		BillingType:           billingType,
 		Stream:                result.Stream,
-		DurationMs:            &durationMs,
+		DurationMs:            new(int(result.Duration.Milliseconds())),
 		FirstTokenMs:          result.FirstTokenMs,
 		CreatedAt:             time.Now(),
 	}

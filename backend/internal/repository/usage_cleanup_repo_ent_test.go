@@ -209,11 +209,6 @@ func TestUsageCleanupRepositoryEntListInvalidFilters(t *testing.T) {
 func TestUsageCleanupTaskFromEntFull(t *testing.T) {
 	start := time.Date(2024, 1, 2, 0, 0, 0, 0, time.UTC)
 	end := start.Add(24 * time.Hour)
-	errMsg := "failed"
-	canceledBy := int64(2)
-	canceledAt := start.Add(time.Minute)
-	startedAt := start.Add(2 * time.Minute)
-	finishedAt := start.Add(3 * time.Minute)
 	filters := service.UsageCleanupFilters{StartTime: start, EndTime: end}
 	filtersJSON, err := json.Marshal(filters)
 	require.NoError(t, err)
@@ -224,11 +219,11 @@ func TestUsageCleanupTaskFromEntFull(t *testing.T) {
 		Filters:      filtersJSON,
 		CreatedBy:    11,
 		DeletedRows:  7,
-		ErrorMessage: &errMsg,
-		CanceledBy:   &canceledBy,
-		CanceledAt:   &canceledAt,
-		StartedAt:    &startedAt,
-		FinishedAt:   &finishedAt,
+		ErrorMessage: new("failed"),
+		CanceledBy:   new(int64(2)),
+		CanceledAt:   new(start.Add(time.Minute)),
+		StartedAt:    new(start.Add(2 * time.Minute)),
+		FinishedAt:   new(start.Add(3 * time.Minute)),
 		CreatedAt:    start,
 		UpdatedAt:    end,
 	})

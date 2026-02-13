@@ -1938,8 +1938,7 @@ func (s *GeminiMessagesCompatService) handleStreamingResponse(c *gin.Context, re
 				}
 
 				if firstTokenMs == nil {
-					ms := int(time.Since(startTime).Milliseconds())
-					firstTokenMs = &ms
+					firstTokenMs = new(int(time.Since(startTime).Milliseconds()))
 				}
 				writeSSE(c.Writer, "content_block_delta", map[string]any{
 					"type":  "content_block_delta",
@@ -2480,8 +2479,7 @@ func (s *GeminiMessagesCompatService) handleNativeStreamingResponse(c *gin.Conte
 					}
 
 					if firstTokenMs == nil {
-						ms := int(time.Since(startTime).Milliseconds())
-						firstTokenMs = &ms
+						firstTokenMs = new(int(time.Since(startTime).Milliseconds()))
 					}
 
 					if isOAuth {
@@ -2768,8 +2766,7 @@ func ParseGeminiRateLimitResetTime(body []byte) *int64 {
 							if dur, err := time.ParseDuration(v); err == nil {
 								// Use ceil to avoid undercounting fractional seconds (e.g. 10.1s should not become 10s),
 								// which can affect scheduling decisions around thresholds (like 10s).
-								ts := time.Now().Unix() + int64(math.Ceil(dur.Seconds()))
-								return &ts
+								return new(time.Now().Unix() + int64(math.Ceil(dur.Seconds())))
 							}
 						}
 					}
@@ -2782,8 +2779,7 @@ func ParseGeminiRateLimitResetTime(body []byte) *int64 {
 	matches := retryInRegex.FindStringSubmatch(string(body))
 	if len(matches) == 2 {
 		if dur, err := time.ParseDuration(matches[1] + "s"); err == nil {
-			ts := time.Now().Unix() + int64(math.Ceil(dur.Seconds()))
-			return &ts
+			return new(time.Now().Unix() + int64(math.Ceil(dur.Seconds())))
 		}
 	}
 
@@ -2800,8 +2796,7 @@ func looksLikeGeminiDailyQuota(message string) bool {
 
 func nextGeminiDailyResetUnix() *int64 {
 	reset := geminiDailyResetTime(time.Now())
-	ts := reset.Unix()
-	return &ts
+	return new(reset.Unix())
 }
 
 func ensureGeminiFunctionCallThoughtSignatures(body []byte) []byte {

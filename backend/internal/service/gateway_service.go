@@ -4356,8 +4356,7 @@ func (s *GatewayService) handleStreamingResponse(ctx context.Context, resp *http
 					}
 					if data != "" {
 						if firstTokenMs == nil && data != "[DONE]" {
-							ms := int(time.Since(startTime).Milliseconds())
-							firstTokenMs = &ms
+							firstTokenMs = new(int(time.Since(startTime).Milliseconds()))
 						}
 						s.parseSSEUsage(data, usage)
 					}
@@ -4587,12 +4586,10 @@ func (s *GatewayService) RecordUsage(ctx context.Context, input *RecordUsageInpu
 	}
 
 	// 创建使用日志
-	durationMs := int(result.Duration.Milliseconds())
 	var imageSize *string
 	if result.ImageSize != "" {
 		imageSize = &result.ImageSize
 	}
-	accountRateMultiplier := account.BillingRateMultiplier()
 	usageLog := &UsageLog{
 		UserID:                user.ID,
 		APIKeyID:              apiKey.ID,
@@ -4610,10 +4607,10 @@ func (s *GatewayService) RecordUsage(ctx context.Context, input *RecordUsageInpu
 		TotalCost:             cost.TotalCost,
 		ActualCost:            cost.ActualCost,
 		RateMultiplier:        multiplier,
-		AccountRateMultiplier: &accountRateMultiplier,
+		AccountRateMultiplier: new(account.BillingRateMultiplier()),
 		BillingType:           billingType,
 		Stream:                result.Stream,
-		DurationMs:            &durationMs,
+		DurationMs:            new(int(result.Duration.Milliseconds())),
 		FirstTokenMs:          result.FirstTokenMs,
 		ImageCount:            result.ImageCount,
 		ImageSize:             imageSize,
@@ -4768,12 +4765,10 @@ func (s *GatewayService) RecordUsageWithLongContext(ctx context.Context, input *
 	}
 
 	// 创建使用日志
-	durationMs := int(result.Duration.Milliseconds())
 	var imageSize *string
 	if result.ImageSize != "" {
 		imageSize = &result.ImageSize
 	}
-	accountRateMultiplier := account.BillingRateMultiplier()
 	usageLog := &UsageLog{
 		UserID:                user.ID,
 		APIKeyID:              apiKey.ID,
@@ -4791,10 +4786,10 @@ func (s *GatewayService) RecordUsageWithLongContext(ctx context.Context, input *
 		TotalCost:             cost.TotalCost,
 		ActualCost:            cost.ActualCost,
 		RateMultiplier:        multiplier,
-		AccountRateMultiplier: &accountRateMultiplier,
+		AccountRateMultiplier: new(account.BillingRateMultiplier()),
 		BillingType:           billingType,
 		Stream:                result.Stream,
-		DurationMs:            &durationMs,
+		DurationMs:            new(int(result.Duration.Milliseconds())),
 		FirstTokenMs:          result.FirstTokenMs,
 		ImageCount:            result.ImageCount,
 		ImageSize:             imageSize,

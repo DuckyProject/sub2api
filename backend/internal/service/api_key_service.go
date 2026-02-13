@@ -315,8 +315,7 @@ func (s *APIKeyService) Create(ctx context.Context, userID int64, req CreateAPIK
 
 	// Set expiration time if specified
 	if req.ExpiresInDays != nil && *req.ExpiresInDays > 0 {
-		expiresAt := time.Now().AddDate(0, 0, *req.ExpiresInDays)
-		apiKey.ExpiresAt = &expiresAt
+		apiKey.ExpiresAt = new(time.Now().AddDate(0, 0, *req.ExpiresInDays))
 	}
 
 	if err := s.apiKeyRepo.Create(ctx, apiKey); err != nil {

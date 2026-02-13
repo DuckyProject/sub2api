@@ -44,8 +44,7 @@ func (s *cleanupRepoStub) CreateTask(ctx context.Context, task *service.UsageCle
 		task.CreatedAt = time.Now().UTC()
 	}
 	task.UpdatedAt = task.CreatedAt
-	clone := *task
-	s.created = append(s.created, &clone)
+	s.created = append(s.created, new(*task))
 	return nil
 }
 

@@ -7,8 +7,7 @@ import (
 )
 
 func extractMaxBytesError(err error) (*http.MaxBytesError, bool) {
-	var maxErr *http.MaxBytesError
-	if errors.As(err, &maxErr) {
+	if maxErr, ok := errors.AsType[*http.MaxBytesError](err); ok {
 		return maxErr, true
 	}
 	return nil, false

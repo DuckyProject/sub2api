@@ -107,8 +107,7 @@ func (h *PromoHandler) Create(c *gin.Context) {
 	}
 
 	if req.ExpiresAt != nil {
-		t := time.Unix(*req.ExpiresAt, 0)
-		input.ExpiresAt = &t
+		input.ExpiresAt = new(time.Unix(*req.ExpiresAt, 0))
 	}
 
 	code, err := h.promoService.Create(c.Request.Context(), input)
@@ -148,8 +147,7 @@ func (h *PromoHandler) Update(c *gin.Context) {
 			// 0 表示清除过期时间
 			input.ExpiresAt = nil
 		} else {
-			t := time.Unix(*req.ExpiresAt, 0)
-			input.ExpiresAt = &t
+			input.ExpiresAt = new(time.Unix(*req.ExpiresAt, 0))
 		}
 	}
 

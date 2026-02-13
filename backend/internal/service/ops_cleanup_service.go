@@ -334,17 +334,14 @@ func (s *OpsCleanupService) recordHeartbeatSuccess(runAt time.Time, duration tim
 	if s == nil || s.opsRepo == nil {
 		return
 	}
-	now := time.Now().UTC()
-	durMs := duration.Milliseconds()
-	result := truncateString(counts.String(), 2048)
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 	_ = s.opsRepo.UpsertJobHeartbeat(ctx, &OpsUpsertJobHeartbeatInput{
 		JobName:        opsCleanupJobName,
 		LastRunAt:      &runAt,
-		LastSuccessAt:  &now,
-		LastDurationMs: &durMs,
-		LastResult:     &result,
+		LastSuccessAt:  new(time.Now().UTC()),
+		LastDurationMs: new(duration.Milliseconds()),
+		LastResult:     new(truncateString(counts.String(), 2048)),
 	})
 }
 
@@ -352,16 +349,13 @@ func (s *OpsCleanupService) recordHeartbeatError(runAt time.Time, duration time.
 	if s == nil || s.opsRepo == nil || err == nil {
 		return
 	}
-	now := time.Now().UTC()
-	durMs := duration.Milliseconds()
-	msg := truncateString(err.Error(), 2048)
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 	_ = s.opsRepo.UpsertJobHeartbeat(ctx, &OpsUpsertJobHeartbeatInput{
 		JobName:        opsCleanupJobName,
 		LastRunAt:      &runAt,
-		LastErrorAt:    &now,
-		LastError:      &msg,
-		LastDurationMs: &durMs,
+		LastErrorAt:    new(time.Now().UTC()),
+		LastError:      new(truncateString(err.Error(), 2048)),
+		LastDurationMs: new(duration.Milliseconds()),
 	})
 }

@@ -206,9 +206,6 @@ func (c *stubGatewayCache) DeleteSessionAccountID(ctx context.Context, groupID i
 
 func TestOpenAISelectAccountWithLoadAwareness_FiltersUnschedulable(t *testing.T) {
 	now := time.Now()
-	resetAt := now.Add(10 * time.Minute)
-	groupID := int64(1)
-
 	rateLimited := Account{
 		ID:               1,
 		Platform:         PlatformOpenAI,
@@ -217,7 +214,7 @@ func TestOpenAISelectAccountWithLoadAwareness_FiltersUnschedulable(t *testing.T)
 		Schedulable:      true,
 		Concurrency:      1,
 		Priority:         0,
-		RateLimitResetAt: &resetAt,
+		RateLimitResetAt: new(now.Add(10 * time.Minute)),
 	}
 	available := Account{
 		ID:          2,
@@ -234,7 +231,7 @@ func TestOpenAISelectAccountWithLoadAwareness_FiltersUnschedulable(t *testing.T)
 		concurrencyService: NewConcurrencyService(stubConcurrencyCache{}),
 	}
 
-	selection, err := svc.SelectAccountWithLoadAwareness(context.Background(), &groupID, "", "gpt-5.2", nil)
+	selection, err := svc.SelectAccountWithLoadAwareness(context.Background(), new(int64(1)), "", "gpt-5.2", nil)
 	if err != nil {
 		t.Fatalf("SelectAccountWithLoadAwareness error: %v", err)
 	}
@@ -251,9 +248,6 @@ func TestOpenAISelectAccountWithLoadAwareness_FiltersUnschedulable(t *testing.T)
 
 func TestOpenAISelectAccountWithLoadAwareness_FiltersUnschedulableWhenNoConcurrencyService(t *testing.T) {
 	now := time.Now()
-	resetAt := now.Add(10 * time.Minute)
-	groupID := int64(1)
-
 	rateLimited := Account{
 		ID:               1,
 		Platform:         PlatformOpenAI,
@@ -262,7 +256,7 @@ func TestOpenAISelectAccountWithLoadAwareness_FiltersUnschedulableWhenNoConcurre
 		Schedulable:      true,
 		Concurrency:      1,
 		Priority:         0,
-		RateLimitResetAt: &resetAt,
+		RateLimitResetAt: new(now.Add(10 * time.Minute)),
 	}
 	available := Account{
 		ID:          2,
@@ -279,7 +273,7 @@ func TestOpenAISelectAccountWithLoadAwareness_FiltersUnschedulableWhenNoConcurre
 		// concurrencyService is nil, forcing the non-load-batch selection path.
 	}
 
-	selection, err := svc.SelectAccountWithLoadAwareness(context.Background(), &groupID, "", "gpt-5.2", nil)
+	selection, err := svc.SelectAccountWithLoadAwareness(context.Background(), new(int64(1)), "", "gpt-5.2", nil)
 	if err != nil {
 		t.Fatalf("SelectAccountWithLoadAwareness error: %v", err)
 	}
@@ -328,7 +322,6 @@ func TestOpenAISelectAccountForModelWithExclusions_StickyUnschedulableClearsSess
 
 func TestOpenAISelectAccountWithLoadAwareness_StickyUnschedulableClearsSession(t *testing.T) {
 	sessionHash := "session-2"
-	groupID := int64(1)
 	repo := stubOpenAIAccountRepo{
 		accounts: []Account{
 			{ID: 1, Platform: PlatformOpenAI, Status: StatusDisabled, Schedulable: true, Concurrency: 1},
@@ -345,7 +338,7 @@ func TestOpenAISelectAccountWithLoadAwareness_StickyUnschedulableClearsSession(t
 		concurrencyService: NewConcurrencyService(stubConcurrencyCache{}),
 	}
 
-	selection, err := svc.SelectAccountWithLoadAwareness(context.Background(), &groupID, sessionHash, "gpt-4", nil)
+	selection, err := svc.SelectAccountWithLoadAwareness(context.Background(), new(int64(1)), sessionHash, "gpt-4", nil)
 	if err != nil {
 		t.Fatalf("SelectAccountWithLoadAwareness error: %v", err)
 	}
@@ -395,7 +388,6 @@ func TestOpenAISelectAccountForModelWithExclusions_NoModelSupport(t *testing.T) 
 }
 
 func TestOpenAISelectAccountWithLoadAwareness_LoadBatchErrorFallback(t *testing.T) {
-	groupID := int64(1)
 	repo := stubOpenAIAccountRepo{
 		accounts: []Account{
 			{ID: 1, Platform: PlatformOpenAI, Status: StatusActive, Schedulable: true, Concurrency: 1, Priority: 2},
@@ -413,7 +405,7 @@ func TestOpenAISelectAccountWithLoadAwareness_LoadBatchErrorFallback(t *testing.
 		concurrencyService: NewConcurrencyService(concurrencyCache),
 	}
 
-	selection, err := svc.SelectAccountWithLoadAwareness(context.Background(), &groupID, "fallback", "gpt-4", nil)
+	selection, err := svc.SelectAccountWithLoadAwareness(context.Background(), new(int64(1)), "fallback", "gpt-4", nil)
 	if err != nil {
 		t.Fatalf("SelectAccountWithLoadAwareness error: %v", err)
 	}
@@ -432,7 +424,6 @@ func TestOpenAISelectAccountWithLoadAwareness_LoadBatchErrorFallback(t *testing.
 }
 
 func TestOpenAISelectAccountWithLoadAwareness_NoSlotFallbackWait(t *testing.T) {
-	groupID := int64(1)
 	repo := stubOpenAIAccountRepo{
 		accounts: []Account{
 			{ID: 1, Platform: PlatformOpenAI, Status: StatusActive, Schedulable: true, Concurrency: 1, Priority: 1},
@@ -452,7 +443,7 @@ func TestOpenAISelectAccountWithLoadAwareness_NoSlotFallbackWait(t *testing.T) {
 		concurrencyService: NewConcurrencyService(concurrencyCache),
 	}
 
-	selection, err := svc.SelectAccountWithLoadAwareness(context.Background(), &groupID, "", "gpt-4", nil)
+	selection, err := svc.SelectAccountWithLoadAwareness(context.Background(), new(int64(1)), "", "gpt-4", nil)
 	if err != nil {
 		t.Fatalf("SelectAccountWithLoadAwareness error: %v", err)
 	}
@@ -492,7 +483,6 @@ func TestOpenAISelectAccountForModelWithExclusions_SetsStickyBinding(t *testing.
 
 func TestOpenAISelectAccountWithLoadAwareness_StickyWaitPlan(t *testing.T) {
 	sessionHash := "sticky-wait"
-	groupID := int64(1)
 	repo := stubOpenAIAccountRepo{
 		accounts: []Account{
 			{ID: 1, Platform: PlatformOpenAI, Status: StatusActive, Schedulable: true, Concurrency: 1, Priority: 1},
@@ -512,7 +502,7 @@ func TestOpenAISelectAccountWithLoadAwareness_StickyWaitPlan(t *testing.T) {
 		concurrencyService: NewConcurrencyService(concurrencyCache),
 	}
 
-	selection, err := svc.SelectAccountWithLoadAwareness(context.Background(), &groupID, sessionHash, "gpt-4", nil)
+	selection, err := svc.SelectAccountWithLoadAwareness(context.Background(), new(int64(1)), sessionHash, "gpt-4", nil)
 	if err != nil {
 		t.Fatalf("SelectAccountWithLoadAwareness error: %v", err)
 	}
@@ -525,7 +515,6 @@ func TestOpenAISelectAccountWithLoadAwareness_StickyWaitPlan(t *testing.T) {
 }
 
 func TestOpenAISelectAccountWithLoadAwareness_PrefersLowerLoad(t *testing.T) {
-	groupID := int64(1)
 	repo := stubOpenAIAccountRepo{
 		accounts: []Account{
 			{ID: 1, Platform: PlatformOpenAI, Status: StatusActive, Schedulable: true, Concurrency: 1, Priority: 1},
@@ -546,7 +535,7 @@ func TestOpenAISelectAccountWithLoadAwareness_PrefersLowerLoad(t *testing.T) {
 		concurrencyService: NewConcurrencyService(concurrencyCache),
 	}
 
-	selection, err := svc.SelectAccountWithLoadAwareness(context.Background(), &groupID, "load", "gpt-4", nil)
+	selection, err := svc.SelectAccountWithLoadAwareness(context.Background(), new(int64(1)), "load", "gpt-4", nil)
 	if err != nil {
 		t.Fatalf("SelectAccountWithLoadAwareness error: %v", err)
 	}
@@ -633,11 +622,9 @@ func TestOpenAISelectAccountForModelWithExclusions_NoAccounts(t *testing.T) {
 }
 
 func TestOpenAISelectAccountWithLoadAwareness_NoCandidates(t *testing.T) {
-	groupID := int64(1)
-	resetAt := time.Now().Add(1 * time.Hour)
 	repo := stubOpenAIAccountRepo{
 		accounts: []Account{
-			{ID: 1, Platform: PlatformOpenAI, Status: StatusActive, Schedulable: true, Concurrency: 1, Priority: 1, RateLimitResetAt: &resetAt},
+			{ID: 1, Platform: PlatformOpenAI, Status: StatusActive, Schedulable: true, Concurrency: 1, Priority: 1, RateLimitResetAt: new(time.Now().Add(1 * time.Hour))},
 		},
 	}
 	cache := &stubGatewayCache{}
@@ -649,7 +636,7 @@ func TestOpenAISelectAccountWithLoadAwareness_NoCandidates(t *testing.T) {
 		concurrencyService: NewConcurrencyService(concurrencyCache),
 	}
 
-	selection, err := svc.SelectAccountWithLoadAwareness(context.Background(), &groupID, "", "gpt-4", nil)
+	selection, err := svc.SelectAccountWithLoadAwareness(context.Background(), new(int64(1)), "", "gpt-4", nil)
 	if err == nil {
 		t.Fatalf("expected error for no candidates")
 	}
@@ -659,7 +646,6 @@ func TestOpenAISelectAccountWithLoadAwareness_NoCandidates(t *testing.T) {
 }
 
 func TestOpenAISelectAccountWithLoadAwareness_AllFullWaitPlan(t *testing.T) {
-	groupID := int64(1)
 	repo := stubOpenAIAccountRepo{
 		accounts: []Account{
 			{ID: 1, Platform: PlatformOpenAI, Status: StatusActive, Schedulable: true, Concurrency: 1, Priority: 1},
@@ -678,7 +664,7 @@ func TestOpenAISelectAccountWithLoadAwareness_AllFullWaitPlan(t *testing.T) {
 		concurrencyService: NewConcurrencyService(concurrencyCache),
 	}
 
-	selection, err := svc.SelectAccountWithLoadAwareness(context.Background(), &groupID, "", "gpt-4", nil)
+	selection, err := svc.SelectAccountWithLoadAwareness(context.Background(), new(int64(1)), "", "gpt-4", nil)
 	if err != nil {
 		t.Fatalf("SelectAccountWithLoadAwareness error: %v", err)
 	}
@@ -688,7 +674,6 @@ func TestOpenAISelectAccountWithLoadAwareness_AllFullWaitPlan(t *testing.T) {
 }
 
 func TestOpenAISelectAccountWithLoadAwareness_LoadBatchErrorNoAcquire(t *testing.T) {
-	groupID := int64(1)
 	repo := stubOpenAIAccountRepo{
 		accounts: []Account{
 			{ID: 1, Platform: PlatformOpenAI, Status: StatusActive, Schedulable: true, Concurrency: 1, Priority: 1},
@@ -706,7 +691,7 @@ func TestOpenAISelectAccountWithLoadAwareness_LoadBatchErrorNoAcquire(t *testing
 		concurrencyService: NewConcurrencyService(concurrencyCache),
 	}
 
-	selection, err := svc.SelectAccountWithLoadAwareness(context.Background(), &groupID, "", "gpt-4", nil)
+	selection, err := svc.SelectAccountWithLoadAwareness(context.Background(), new(int64(1)), "", "gpt-4", nil)
 	if err != nil {
 		t.Fatalf("SelectAccountWithLoadAwareness error: %v", err)
 	}
@@ -716,7 +701,6 @@ func TestOpenAISelectAccountWithLoadAwareness_LoadBatchErrorNoAcquire(t *testing
 }
 
 func TestOpenAISelectAccountWithLoadAwareness_MissingLoadInfo(t *testing.T) {
-	groupID := int64(1)
 	repo := stubOpenAIAccountRepo{
 		accounts: []Account{
 			{ID: 1, Platform: PlatformOpenAI, Status: StatusActive, Schedulable: true, Concurrency: 1, Priority: 1},
@@ -737,7 +721,7 @@ func TestOpenAISelectAccountWithLoadAwareness_MissingLoadInfo(t *testing.T) {
 		concurrencyService: NewConcurrencyService(concurrencyCache),
 	}
 
-	selection, err := svc.SelectAccountWithLoadAwareness(context.Background(), &groupID, "", "gpt-4", nil)
+	selection, err := svc.SelectAccountWithLoadAwareness(context.Background(), new(int64(1)), "", "gpt-4", nil)
 	if err != nil {
 		t.Fatalf("SelectAccountWithLoadAwareness error: %v", err)
 	}
@@ -747,12 +731,10 @@ func TestOpenAISelectAccountWithLoadAwareness_MissingLoadInfo(t *testing.T) {
 }
 
 func TestOpenAISelectAccountForModelWithExclusions_LeastRecentlyUsed(t *testing.T) {
-	oldTime := time.Now().Add(-2 * time.Hour)
-	newTime := time.Now().Add(-1 * time.Hour)
 	repo := stubOpenAIAccountRepo{
 		accounts: []Account{
-			{ID: 1, Platform: PlatformOpenAI, Status: StatusActive, Schedulable: true, Priority: 1, LastUsedAt: &newTime},
-			{ID: 2, Platform: PlatformOpenAI, Status: StatusActive, Schedulable: true, Priority: 1, LastUsedAt: &oldTime},
+			{ID: 1, Platform: PlatformOpenAI, Status: StatusActive, Schedulable: true, Priority: 1, LastUsedAt: new(time.Now().Add(-1 * time.Hour))},
+			{ID: 2, Platform: PlatformOpenAI, Status: StatusActive, Schedulable: true, Priority: 1, LastUsedAt: new(time.Now().Add(-2 * time.Hour))},
 		},
 	}
 	cache := &stubGatewayCache{}
@@ -772,11 +754,9 @@ func TestOpenAISelectAccountForModelWithExclusions_LeastRecentlyUsed(t *testing.
 }
 
 func TestOpenAISelectAccountWithLoadAwareness_PreferNeverUsed(t *testing.T) {
-	groupID := int64(1)
-	lastUsed := time.Now().Add(-1 * time.Hour)
 	repo := stubOpenAIAccountRepo{
 		accounts: []Account{
-			{ID: 1, Platform: PlatformOpenAI, Status: StatusActive, Schedulable: true, Concurrency: 1, Priority: 1, LastUsedAt: &lastUsed},
+			{ID: 1, Platform: PlatformOpenAI, Status: StatusActive, Schedulable: true, Concurrency: 1, Priority: 1, LastUsedAt: new(time.Now().Add(-1 * time.Hour))},
 			{ID: 2, Platform: PlatformOpenAI, Status: StatusActive, Schedulable: true, Concurrency: 1, Priority: 1},
 		},
 	}
@@ -794,7 +774,7 @@ func TestOpenAISelectAccountWithLoadAwareness_PreferNeverUsed(t *testing.T) {
 		concurrencyService: NewConcurrencyService(concurrencyCache),
 	}
 
-	selection, err := svc.SelectAccountWithLoadAwareness(context.Background(), &groupID, "", "gpt-4", nil)
+	selection, err := svc.SelectAccountWithLoadAwareness(context.Background(), new(int64(1)), "", "gpt-4", nil)
 	if err != nil {
 		t.Fatalf("SelectAccountWithLoadAwareness error: %v", err)
 	}

@@ -227,60 +227,46 @@ LIMIT 1`
 	}
 
 	if cpu.Valid {
-		v := cpu.Float64
-		out.CPUUsagePercent = &v
+		out.CPUUsagePercent = new(cpu.Float64)
 	}
 	if memUsed.Valid {
-		v := memUsed.Int64
-		out.MemoryUsedMB = &v
+		out.MemoryUsedMB = new(memUsed.Int64)
 	}
 	if memTotal.Valid {
-		v := memTotal.Int64
-		out.MemoryTotalMB = &v
+		out.MemoryTotalMB = new(memTotal.Int64)
 	}
 	if memPct.Valid {
-		v := memPct.Float64
-		out.MemoryUsagePercent = &v
+		out.MemoryUsagePercent = new(memPct.Float64)
 	}
 	if dbOK.Valid {
-		v := dbOK.Bool
-		out.DBOK = &v
+		out.DBOK = new(dbOK.Bool)
 	}
 	if redisOK.Valid {
-		v := redisOK.Bool
-		out.RedisOK = &v
+		out.RedisOK = new(redisOK.Bool)
 	}
 	if redisTotal.Valid {
-		v := int(redisTotal.Int64)
-		out.RedisConnTotal = &v
+		out.RedisConnTotal = new(int(redisTotal.Int64))
 	}
 	if redisIdle.Valid {
-		v := int(redisIdle.Int64)
-		out.RedisConnIdle = &v
+		out.RedisConnIdle = new(int(redisIdle.Int64))
 	}
 	if dbActive.Valid {
-		v := int(dbActive.Int64)
-		out.DBConnActive = &v
+		out.DBConnActive = new(int(dbActive.Int64))
 	}
 	if dbIdle.Valid {
-		v := int(dbIdle.Int64)
-		out.DBConnIdle = &v
+		out.DBConnIdle = new(int(dbIdle.Int64))
 	}
 	if dbWaiting.Valid {
-		v := int(dbWaiting.Int64)
-		out.DBConnWaiting = &v
+		out.DBConnWaiting = new(int(dbWaiting.Int64))
 	}
 	if goroutines.Valid {
-		v := int(goroutines.Int64)
-		out.GoroutineCount = &v
+		out.GoroutineCount = new(int(goroutines.Int64))
 	}
 	if queueDepth.Valid {
-		v := int(queueDepth.Int64)
-		out.ConcurrencyQueueDepth = &v
+		out.ConcurrencyQueueDepth = new(int(queueDepth.Int64))
 	}
 	if accountSwitchCount.Valid {
-		v := accountSwitchCount.Int64
-		out.AccountSwitchCount = &v
+		out.AccountSwitchCount = new(accountSwitchCount.Int64)
 	}
 
 	return &out, nil
@@ -391,28 +377,22 @@ ORDER BY job_name ASC`
 		}
 
 		if lastRun.Valid {
-			v := lastRun.Time
-			item.LastRunAt = &v
+			item.LastRunAt = new(lastRun.Time)
 		}
 		if lastSuccess.Valid {
-			v := lastSuccess.Time
-			item.LastSuccessAt = &v
+			item.LastSuccessAt = new(lastSuccess.Time)
 		}
 		if lastErrorAt.Valid {
-			v := lastErrorAt.Time
-			item.LastErrorAt = &v
+			item.LastErrorAt = new(lastErrorAt.Time)
 		}
 		if lastError.Valid {
-			v := lastError.String
-			item.LastError = &v
+			item.LastError = new(lastError.String)
 		}
 		if lastDuration.Valid {
-			v := lastDuration.Int64
-			item.LastDurationMs = &v
+			item.LastDurationMs = new(lastDuration.Int64)
 		}
 		if lastResult.Valid {
-			v := lastResult.String
-			item.LastResult = &v
+			item.LastResult = new(lastResult.String)
 		}
 
 		out = append(out, &item)

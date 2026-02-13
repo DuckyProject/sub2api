@@ -298,8 +298,7 @@ func (s *OpsAlertEvaluatorService) evaluateOnce(interval time.Duration) {
 
 		// Not breached: resolve active event if present.
 		if activeEvent != nil {
-			resolvedAt := now
-			if err := s.opsRepo.UpdateAlertEventStatus(ctx, activeEvent.ID, OpsAlertStatusResolved, &resolvedAt); err != nil {
+			if err := s.opsRepo.UpdateAlertEventStatus(ctx, activeEvent.ID, OpsAlertStatusResolved, new(now)); err != nil {
 				log.Printf("[OpsAlertEvaluator] resolve event failed (event=%d): %v", activeEvent.ID, err)
 			} else {
 				eventsResolved++
@@ -398,18 +397,15 @@ func parseOpsAlertRuleScope(filters map[string]any) (platform string, groupID *i
 		switch t := v.(type) {
 		case float64:
 			if t > 0 {
-				id := int64(t)
-				groupID = &id
+				groupID = new(int64(t))
 			}
 		case int64:
 			if t > 0 {
-				id := t
-				groupID = &id
+				groupID = new(t)
 			}
 		case int:
 			if t > 0 {
-				id := int64(t)
-				groupID = &id
+				groupID = new(int64(t))
 			}
 		case string:
 			n, err := strconv.ParseInt(strings.TrimSpace(t), 10, 64)
@@ -826,8 +822,6 @@ func (s *OpsAlertEvaluatorService) recordHeartbeatSuccess(runAt time.Time, durat
 	if s == nil || s.opsRepo == nil {
 		return
 	}
-	now := time.Now().UTC()
-	durMs := duration.Milliseconds()
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 	msg := strings.TrimSpace(result)
@@ -838,8 +832,8 @@ func (s *OpsAlertEvaluatorService) recordHeartbeatSuccess(runAt time.Time, durat
 	_ = s.opsRepo.UpsertJobHeartbeat(ctx, &OpsUpsertJobHeartbeatInput{
 		JobName:        opsAlertEvaluatorJobName,
 		LastRunAt:      &runAt,
-		LastSuccessAt:  &now,
-		LastDurationMs: &durMs,
+		LastSuccessAt:  new(time.Now().UTC()),
+		LastDurationMs: new(duration.Milliseconds()),
 		LastResult:     &msg,
 	})
 }
@@ -848,17 +842,14 @@ func (s *OpsAlertEvaluatorService) recordHeartbeatError(runAt time.Time, duratio
 	if s == nil || s.opsRepo == nil || err == nil {
 		return
 	}
-	now := time.Now().UTC()
-	durMs := duration.Milliseconds()
-	msg := truncateString(err.Error(), 2048)
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 	_ = s.opsRepo.UpsertJobHeartbeat(ctx, &OpsUpsertJobHeartbeatInput{
 		JobName:        opsAlertEvaluatorJobName,
 		LastRunAt:      &runAt,
-		LastErrorAt:    &now,
-		LastError:      &msg,
-		LastDurationMs: &durMs,
+		LastErrorAt:    new(time.Now().UTC()),
+		LastError:      new(truncateString(err.Error(), 2048)),
+		LastDurationMs: new(duration.Milliseconds()),
 	})
 }
 

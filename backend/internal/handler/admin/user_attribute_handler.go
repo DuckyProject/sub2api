@@ -199,8 +199,7 @@ func (h *UserAttributeHandler) UpdateDefinition(c *gin.Context) {
 		Enabled:     req.Enabled,
 	}
 	if req.Type != nil {
-		t := service.UserAttributeType(*req.Type)
-		input.Type = &t
+		input.Type = new(service.UserAttributeType(*req.Type))
 	}
 
 	def, err := h.attrService.UpdateDefinition(c.Request.Context(), id, input)

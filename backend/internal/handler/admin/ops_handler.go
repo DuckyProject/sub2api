@@ -142,11 +142,9 @@ func (h *OpsHandler) GetErrorLogs(c *gin.Context) {
 	if v := strings.TrimSpace(c.Query("resolved")); v != "" {
 		switch strings.ToLower(v) {
 		case "1", "true", "yes":
-			b := true
-			filter.Resolved = &b
+			filter.Resolved = new(true)
 		case "0", "false", "no":
-			b := false
-			filter.Resolved = &b
+			filter.Resolved = new(false)
 		default:
 			response.BadRequest(c, "Invalid resolved")
 			return
@@ -243,11 +241,9 @@ func (h *OpsHandler) ListRequestErrors(c *gin.Context) {
 	if v := strings.TrimSpace(c.Query("resolved")); v != "" {
 		switch strings.ToLower(v) {
 		case "1", "true", "yes":
-			b := true
-			filter.Resolved = &b
+			filter.Resolved = new(true)
 		case "0", "false", "no":
-			b := false
-			filter.Resolved = &b
+			filter.Resolved = new(false)
 		default:
 			response.BadRequest(c, "Invalid resolved")
 			return
@@ -522,11 +518,9 @@ func (h *OpsHandler) ListUpstreamErrors(c *gin.Context) {
 	if v := strings.TrimSpace(c.Query("resolved")); v != "" {
 		switch strings.ToLower(v) {
 		case "1", "true", "yes":
-			b := true
-			filter.Resolved = &b
+			filter.Resolved = new(true)
 		case "0", "false", "no":
-			b := false
-			filter.Resolved = &b
+			filter.Resolved = new(false)
 		default:
 			response.BadRequest(c, "Invalid resolved")
 			return
@@ -836,8 +830,7 @@ func (h *OpsHandler) UpdateErrorResolution(c *gin.Context) {
 		response.BadRequest(c, "Invalid request: "+err.Error())
 		return
 	}
-	uid := subject.UserID
-	if err := h.opsService.UpdateErrorResolution(c.Request.Context(), id, req.Resolved, &uid, nil); err != nil {
+	if err := h.opsService.UpdateErrorResolution(c.Request.Context(), id, req.Resolved, new(subject.UserID), nil); err != nil {
 		response.ErrorFrom(c, err)
 		return
 	}

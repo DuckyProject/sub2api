@@ -404,12 +404,11 @@ func TestUsageCleanupRepositoryDeleteUsageLogsBatch(t *testing.T) {
 	start := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
 	end := start.Add(24 * time.Hour)
 	userID := int64(3)
-	model := " gpt-4 "
 	filters := service.UsageCleanupFilters{
 		StartTime: start,
 		EndTime:   end,
 		UserID:    &userID,
-		Model:     &model,
+		Model:     new(" gpt-4 "),
 	}
 
 	mock.ExpectQuery("DELETE FROM usage_logs").
@@ -446,7 +445,6 @@ func TestBuildUsageCleanupWhere(t *testing.T) {
 	apiKeyID := int64(2)
 	accountID := int64(3)
 	groupID := int64(4)
-	model := " gpt-4 "
 	stream := true
 	billingType := int8(2)
 
@@ -457,7 +455,7 @@ func TestBuildUsageCleanupWhere(t *testing.T) {
 		APIKeyID:    &apiKeyID,
 		AccountID:   &accountID,
 		GroupID:     &groupID,
-		Model:       &model,
+		Model:       new(" gpt-4 "),
 		Stream:      &stream,
 		BillingType: &billingType,
 	})
@@ -469,12 +467,10 @@ func TestBuildUsageCleanupWhere(t *testing.T) {
 func TestBuildUsageCleanupWhereModelEmpty(t *testing.T) {
 	start := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
 	end := start.Add(24 * time.Hour)
-	model := "   "
-
 	where, args := buildUsageCleanupWhere(service.UsageCleanupFilters{
 		StartTime: start,
 		EndTime:   end,
-		Model:     &model,
+		Model:     new("   "),
 	})
 
 	require.Equal(t, "created_at >= $1 AND created_at <= $2", where)

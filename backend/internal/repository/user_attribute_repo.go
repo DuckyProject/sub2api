@@ -374,11 +374,9 @@ func getInt(m map[string]any, key string) *int {
 		case int:
 			return &n
 		case int64:
-			i := int(n)
-			return &i
+			return new(int(n))
 		case float64:
-			i := int(n)
-			return &i
+			return new(int(n))
 		}
 	}
 	return nil

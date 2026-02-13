@@ -440,9 +440,7 @@ func (s *RateLimitService) handle429(ctx context.Context, account *Account, head
 	}
 
 	// 根据重置时间反推5h窗口
-	windowEnd := resetAt
-	windowStart := resetAt.Add(-5 * time.Hour)
-	if err := s.accountRepo.UpdateSessionWindow(ctx, account.ID, &windowStart, &windowEnd, "rejected"); err != nil {
+	if err := s.accountRepo.UpdateSessionWindow(ctx, account.ID, new(resetAt.Add(-5*time.Hour)), new(resetAt), "rejected"); err != nil {
 		slog.Warn("rate_limit_update_session_window_failed", "account_id", account.ID, "error", err)
 	}
 
@@ -527,8 +525,7 @@ func parseOpenAIRateLimitResetTime(body []byte) *int64 {
 
 	// 优先使用 resets_at（Unix 时间戳）
 	if resetsAt, ok := errObj["resets_at"].(float64); ok {
-		ts := int64(resetsAt)
-		return &ts
+		return new(int64(resetsAt))
 	}
 	if resetsAt, ok := errObj["resets_at"].(string); ok {
 		if ts, err := strconv.ParseInt(resetsAt, 10, 64); err == nil {
@@ -538,13 +535,11 @@ func parseOpenAIRateLimitResetTime(body []byte) *int64 {
 
 	// 如果没有 resets_at，尝试使用 resets_in_seconds
 	if resetsInSeconds, ok := errObj["resets_in_seconds"].(float64); ok {
-		ts := time.Now().Unix() + int64(resetsInSeconds)
-		return &ts
+		return new(time.Now().Unix() + int64(resetsInSeconds))
 	}
 	if resetsInSeconds, ok := errObj["resets_in_seconds"].(string); ok {
 		if sec, err := strconv.ParseInt(resetsInSeconds, 10, 64); err == nil {
-			ts := time.Now().Unix() + sec
-			return &ts
+			return new(time.Now().Unix() + sec)
 		}
 	}
 

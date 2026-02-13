@@ -174,14 +174,12 @@ func isConnectionError(err error) bool {
 	}
 
 	// 检查超时错误
-	var netErr net.Error
-	if errors.As(err, &netErr) && netErr.Timeout() {
+	if netErr, ok := errors.AsType[net.Error](err); ok && netErr.Timeout() {
 		return true
 	}
 
 	// 检查连接错误（DNS 失败、连接拒绝）
-	var opErr *net.OpError
-	if errors.As(err, &opErr) {
+	if _, ok := errors.AsType[*net.OpError](err); ok {
 		return true
 	}
 

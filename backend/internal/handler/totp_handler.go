@@ -48,8 +48,7 @@ func (h *TotpHandler) GetStatus(c *gin.Context) {
 	}
 
 	if status.EnabledAt != nil {
-		ts := status.EnabledAt.Unix()
-		resp.EnabledAt = &ts
+		resp.EnabledAt = new(status.EnabledAt.Unix())
 	}
 
 	response.Success(c, resp)

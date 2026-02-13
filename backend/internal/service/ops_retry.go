@@ -196,11 +196,8 @@ func (s *OpsService) RetryUpstreamEvent(ctx context.Context, requestedByUserID i
 	}
 
 	override := *errorLog
-	override.RequestBody = upstreamBody
-	pinned := ev.AccountID
-
-	// Persist as upstream_event, execute as upstream pinned retry.
-	return s.retryWithErrorLog(ctx, requestedByUserID, errorID, OpsRetryModeUpstreamEvent, OpsRetryModeUpstream, &pinned, &override)
+	override.RequestBody = upstreamBody // Persist as upstream_event, execute as upstream pinned retry.
+	return s.retryWithErrorLog(ctx, requestedByUserID, errorID, OpsRetryModeUpstreamEvent, OpsRetryModeUpstream, new(ev.AccountID), &override)
 }
 
 func (s *OpsService) retryWithErrorLog(ctx context.Context, requestedByUserID int64, errorID int64, mode string, execMode string, pinnedAccountID *int64, errorLog *OpsErrorLogDetail) (*OpsRetryResult, error) {
@@ -250,8 +247,7 @@ func (s *OpsService) retryWithErrorLog(ctx context.Context, requestedByUserID in
 		StartedAt:         startedAt,
 	})
 	if err != nil {
-		var pqErr *pq.Error
-		if errors.As(err, &pqErr) && string(pqErr.Code) == "23505" {
+		if pqErr, ok := errors.AsType[*pq.Error](err); ok && string(pqErr.Code) == "23505" {
 			return nil, infraerrors.Conflict("OPS_RETRY_IN_PROGRESS", "A retry is already in progress for this error")
 		}
 		return nil, infraerrors.InternalServer("OPS_RETRY_CREATE_ATTEMPT_FAILED", "Failed to create retry attempt").WithCause(err)
@@ -294,8 +290,7 @@ func (s *OpsService) retryWithErrorLog(ctx context.Context, requestedByUserID in
 
 	var updateErrMsg *string
 	if strings.TrimSpace(result.ErrorMessage) != "" {
-		msg := result.ErrorMessage
-		updateErrMsg = &msg
+		updateErrMsg = new(result.ErrorMessage)
 	}
 	// Keep legacy result_request_id empty; use upstream_request_id instead.
 	var resultRequestID *string
@@ -306,23 +301,18 @@ func (s *OpsService) retryWithErrorLog(ctx context.Context, requestedByUserID in
 	}
 
 	success := strings.EqualFold(finalStatus, opsRetryStatusSucceeded)
-	httpStatus := result.HTTPStatusCode
-	upstreamReqID := result.UpstreamRequestID
 	usedAccountID := result.UsedAccountID
-	preview := result.ResponsePreview
-	truncated := result.ResponseTruncated
-
 	if err := s.opsRepo.UpdateRetryAttempt(updateCtx, &OpsUpdateRetryAttemptInput{
 		ID:                attemptID,
 		Status:            finalStatus,
 		FinishedAt:        finishedAt,
 		DurationMs:        result.DurationMs,
 		Success:           &success,
-		HTTPStatusCode:    &httpStatus,
-		UpstreamRequestID: &upstreamReqID,
+		HTTPStatusCode:    new(result.HTTPStatusCode),
+		UpstreamRequestID: new(result.UpstreamRequestID),
 		UsedAccountID:     usedAccountID,
-		ResponsePreview:   &preview,
-		ResponseTruncated: &truncated,
+		ResponsePreview:   new(result.ResponsePreview),
+		ResponseTruncated: new(result.ResponseTruncated),
 		ResultRequestID:   resultRequestID,
 		ErrorMessage:      updateErrMsg,
 	}); err != nil {
@@ -434,9 +424,8 @@ func (s *OpsService) executePinnedRetry(ctx context.Context, reqType opsRetryReq
 		defer release()
 	}
 
-	usedID := account.ID
 	exec := s.executeWithAccount(ctx, reqType, errorLog, body, account)
-	exec.usedAccountID = &usedID
+	exec.usedAccountID = new(account.ID)
 	if exec.status == "" {
 		exec.status = opsRetryStatusFailed
 	}
@@ -489,8 +478,7 @@ func (s *OpsService) executeClientRetry(ctx context.Context, reqType opsRetryReq
 
 		if exec != nil {
 			if exec.status == opsRetryStatusSucceeded {
-				usedID := account.ID
-				exec.usedAccountID = &usedID
+				exec.usedAccountID = new(account.ID)
 				return exec
 			}
 			// If the gateway services ask for failover, try another account.
@@ -499,8 +487,7 @@ func (s *OpsService) executeClientRetry(ctx context.Context, reqType opsRetryReq
 				switches++
 				continue
 			}
-			usedID := account.ID
-			exec.usedAccountID = &usedID
+			exec.usedAccountID = new(account.ID)
 			return exec
 		}
 

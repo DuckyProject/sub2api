@@ -378,8 +378,7 @@ func OpsErrorLoggerMiddleware(ops *service.OpsService) gin.HandlerFunc {
 			var accountID *int64
 			if len(events) > 0 {
 				if last := events[len(events)-1]; last != nil && last.AccountID > 0 {
-					v := last.AccountID
-					accountID = &v
+					accountID = new(last.AccountID)
 				}
 			}
 			if accountID == nil {
@@ -404,8 +403,7 @@ func OpsErrorLoggerMiddleware(ops *service.OpsService) gin.HandlerFunc {
 				last := events[len(events)-1]
 				if last != nil {
 					if last.UpstreamStatusCode > 0 {
-						code := last.UpstreamStatusCode
-						upstreamStatusCode = &code
+						upstreamStatusCode = new(last.UpstreamStatusCode)
 					}
 					if msg := strings.TrimSpace(last.Message); msg != "" {
 						upstreamErrorMessage = &msg
@@ -421,13 +419,11 @@ func OpsErrorLoggerMiddleware(ops *service.OpsService) gin.HandlerFunc {
 					switch t := v.(type) {
 					case int:
 						if t > 0 {
-							code := t
-							upstreamStatusCode = &code
+							upstreamStatusCode = new(t)
 						}
 					case int64:
 						if t > 0 {
-							code := int(t)
-							upstreamStatusCode = &code
+							upstreamStatusCode = new(int(t))
 						}
 					}
 				}
@@ -435,16 +431,14 @@ func OpsErrorLoggerMiddleware(ops *service.OpsService) gin.HandlerFunc {
 			if upstreamErrorMessage == nil {
 				if v, ok := c.Get(service.OpsUpstreamErrorMessageKey); ok {
 					if s, ok := v.(string); ok && strings.TrimSpace(s) != "" {
-						msg := strings.TrimSpace(s)
-						upstreamErrorMessage = &msg
+						upstreamErrorMessage = new(strings.TrimSpace(s))
 					}
 				}
 			}
 			if upstreamErrorDetail == nil {
 				if v, ok := c.Get(service.OpsUpstreamErrorDetailKey); ok {
 					if s, ok := v.(string); ok && strings.TrimSpace(s) != "" {
-						detail := strings.TrimSpace(s)
-						upstreamErrorDetail = &detail
+						upstreamErrorDetail = new(strings.TrimSpace(s))
 					}
 				}
 			}
@@ -640,13 +634,11 @@ func OpsErrorLoggerMiddleware(ops *service.OpsService) gin.HandlerFunc {
 				switch t := v.(type) {
 				case int:
 					if t > 0 {
-						code := t
-						entry.UpstreamStatusCode = &code
+						entry.UpstreamStatusCode = new(t)
 					}
 				case int64:
 					if t > 0 {
-						code := int(t)
-						entry.UpstreamStatusCode = &code
+						entry.UpstreamStatusCode = new(int(t))
 					}
 				}
 			}
@@ -671,16 +663,13 @@ func OpsErrorLoggerMiddleware(ops *service.OpsService) gin.HandlerFunc {
 					last := events[len(events)-1]
 					if last != nil {
 						if entry.UpstreamStatusCode == nil && last.UpstreamStatusCode > 0 {
-							code := last.UpstreamStatusCode
-							entry.UpstreamStatusCode = &code
+							entry.UpstreamStatusCode = new(last.UpstreamStatusCode)
 						}
 						if entry.UpstreamErrorMessage == nil && strings.TrimSpace(last.Message) != "" {
-							msg := strings.TrimSpace(last.Message)
-							entry.UpstreamErrorMessage = &msg
+							entry.UpstreamErrorMessage = new(strings.TrimSpace(last.Message))
 						}
 						if entry.UpstreamErrorDetail == nil && strings.TrimSpace(last.Detail) != "" {
-							detail := strings.TrimSpace(last.Detail)
-							entry.UpstreamErrorDetail = &detail
+							entry.UpstreamErrorDetail = new(strings.TrimSpace(last.Detail))
 						}
 					}
 				}
@@ -756,8 +745,7 @@ func extractOpsRetryRequestHeaders(c *gin.Context) *string {
 	if err != nil {
 		return nil
 	}
-	s := string(raw)
-	return &s
+	return new(string(raw))
 }
 
 type parsedOpsError struct {

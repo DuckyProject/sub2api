@@ -140,8 +140,7 @@ func (h *AccountHandler) ExportData(c *gin.Context) {
 		}
 		var expiresAt *int64
 		if acc.ExpiresAt != nil {
-			v := acc.ExpiresAt.Unix()
-			expiresAt = &v
+			expiresAt = new(acc.ExpiresAt.Unix())
 		}
 		dataAccounts = append(dataAccounts, DataAccount{
 			Name:               acc.Name,

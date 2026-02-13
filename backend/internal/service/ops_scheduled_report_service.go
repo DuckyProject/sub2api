@@ -280,8 +280,7 @@ func (s *OpsScheduledReportService) listScheduledReports(ctx context.Context, no
 
 		var lastRunPtr *time.Time
 		if !lastRun.IsZero() {
-			lastCopy := lastRun
-			lastRunPtr = &lastCopy
+			lastRunPtr = new(lastRun)
 		}
 
 		out = append(out, &opsScheduledReport{
@@ -391,11 +390,9 @@ func (s *OpsScheduledReportService) generateReportHTML(ctx context.Context, repo
 		return buildOpsSummaryEmailHTML(report.Name, start, end, overview), nil
 	case "error_digest":
 		// Lightweight digest: list recent errors (status>=400) and breakdown by type.
-		startTime := start
-		endTime := end
 		filter := &OpsErrorLogFilter{
-			StartTime: &startTime,
-			EndTime:   &endTime,
+			StartTime: new(start),
+			EndTime:   new(end),
 			Page:      1,
 			PageSize:  100,
 		}
@@ -664,8 +661,6 @@ func (s *OpsScheduledReportService) recordHeartbeatSuccess(runAt time.Time, dura
 	if s == nil || s.opsService == nil || s.opsService.opsRepo == nil {
 		return
 	}
-	now := time.Now().UTC()
-	durMs := duration.Milliseconds()
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 	msg := strings.TrimSpace(result)
@@ -676,8 +671,8 @@ func (s *OpsScheduledReportService) recordHeartbeatSuccess(runAt time.Time, dura
 	_ = s.opsService.opsRepo.UpsertJobHeartbeat(ctx, &OpsUpsertJobHeartbeatInput{
 		JobName:        opsScheduledReportJobName,
 		LastRunAt:      &runAt,
-		LastSuccessAt:  &now,
-		LastDurationMs: &durMs,
+		LastSuccessAt:  new(time.Now().UTC()),
+		LastDurationMs: new(duration.Milliseconds()),
 		LastResult:     &msg,
 	})
 }
@@ -686,17 +681,14 @@ func (s *OpsScheduledReportService) recordHeartbeatError(runAt time.Time, durati
 	if s == nil || s.opsService == nil || s.opsService.opsRepo == nil || err == nil {
 		return
 	}
-	now := time.Now().UTC()
-	durMs := duration.Milliseconds()
-	msg := truncateString(err.Error(), 2048)
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 	_ = s.opsService.opsRepo.UpsertJobHeartbeat(ctx, &OpsUpsertJobHeartbeatInput{
 		JobName:        opsScheduledReportJobName,
 		LastRunAt:      &runAt,
-		LastErrorAt:    &now,
-		LastError:      &msg,
-		LastDurationMs: &durMs,
+		LastErrorAt:    new(time.Now().UTC()),
+		LastError:      new(truncateString(err.Error(), 2048)),
+		LastDurationMs: new(duration.Milliseconds()),
 	})
 }
 

@@ -312,8 +312,7 @@ func (h *AccountHandler) Create(c *gin.Context) {
 	})
 	if err != nil {
 		// 检查是否为混合渠道错误
-		var mixedErr *service.MixedChannelError
-		if errors.As(err, &mixedErr) {
+		if mixedErr, ok := errors.AsType[*service.MixedChannelError](err); ok {
 			// 返回特殊错误码要求确认
 			c.JSON(409, gin.H{
 				"error":   "mixed_channel_warning",
@@ -376,8 +375,7 @@ func (h *AccountHandler) Update(c *gin.Context) {
 	})
 	if err != nil {
 		// 检查是否为混合渠道错误
-		var mixedErr *service.MixedChannelError
-		if errors.As(err, &mixedErr) {
+		if mixedErr, ok := errors.AsType[*service.MixedChannelError](err); ok {
 			// 返回特殊错误码要求确认
 			c.JSON(409, gin.H{
 				"error":   "mixed_channel_warning",

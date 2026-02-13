@@ -96,8 +96,7 @@ func (r *usageCleanupRepository) ListTasks(ctx context.Context, params paginatio
 			task.ErrorMsg = &errMsg.String
 		}
 		if canceledBy.Valid {
-			v := canceledBy.Int64
-			task.CanceledBy = &v
+			task.CanceledBy = new(canceledBy.Int64)
 		}
 		if canceledAt.Valid {
 			task.CanceledAt = &canceledAt.Time

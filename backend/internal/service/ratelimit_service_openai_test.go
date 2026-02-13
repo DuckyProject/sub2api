@@ -143,20 +143,13 @@ func TestCalculateOpenAI429ResetTime_ReversedWindowOrder(t *testing.T) {
 
 func TestNormalizedCodexLimits(t *testing.T) {
 	// Test the Normalize() method directly
-	pUsed := 100.0
-	pReset := 384607
-	pWindow := 10080
-	sUsed := 3.0
-	sReset := 17369
-	sWindow := 300
-
 	snapshot := &OpenAICodexUsageSnapshot{
-		PrimaryUsedPercent:         &pUsed,
-		PrimaryResetAfterSeconds:   &pReset,
-		PrimaryWindowMinutes:       &pWindow,
-		SecondaryUsedPercent:       &sUsed,
-		SecondaryResetAfterSeconds: &sReset,
-		SecondaryWindowMinutes:     &sWindow,
+		PrimaryUsedPercent:         new(100.0),
+		PrimaryResetAfterSeconds:   new(384607),
+		PrimaryWindowMinutes:       new(10080),
+		SecondaryUsedPercent:       new(3.0),
+		SecondaryResetAfterSeconds: new(17369),
+		SecondaryWindowMinutes:     new(300),
 	}
 
 	normalized := snapshot.Normalize()
@@ -181,12 +174,9 @@ func TestNormalizedCodexLimits(t *testing.T) {
 
 func TestNormalizedCodexLimits_OnlyPrimaryData(t *testing.T) {
 	// Test when only primary has data, no window_minutes
-	pUsed := 80.0
-	pReset := 50000
-
 	snapshot := &OpenAICodexUsageSnapshot{
-		PrimaryUsedPercent:       &pUsed,
-		PrimaryResetAfterSeconds: &pReset,
+		PrimaryUsedPercent:       new(80.0),
+		PrimaryResetAfterSeconds: new(50000),
 		// No window_minutes, no secondary data
 	}
 
@@ -213,12 +203,9 @@ func TestNormalizedCodexLimits_OnlyPrimaryData(t *testing.T) {
 
 func TestNormalizedCodexLimits_OnlySecondaryData(t *testing.T) {
 	// Test when only secondary has data, no window_minutes
-	sUsed := 60.0
-	sReset := 3000
-
 	snapshot := &OpenAICodexUsageSnapshot{
-		SecondaryUsedPercent:       &sUsed,
-		SecondaryResetAfterSeconds: &sReset,
+		SecondaryUsedPercent:       new(60.0),
+		SecondaryResetAfterSeconds: new(3000),
 		// No window_minutes, no primary data
 	}
 
@@ -243,16 +230,11 @@ func TestNormalizedCodexLimits_OnlySecondaryData(t *testing.T) {
 
 func TestNormalizedCodexLimits_BothDataNoWindowMinutes(t *testing.T) {
 	// Test when both have data but no window_minutes
-	pUsed := 100.0
-	pReset := 400000
-	sUsed := 50.0
-	sReset := 10000
-
 	snapshot := &OpenAICodexUsageSnapshot{
-		PrimaryUsedPercent:         &pUsed,
-		PrimaryResetAfterSeconds:   &pReset,
-		SecondaryUsedPercent:       &sUsed,
-		SecondaryResetAfterSeconds: &sReset,
+		PrimaryUsedPercent:         new(100.0),
+		PrimaryResetAfterSeconds:   new(400000),
+		SecondaryUsedPercent:       new(50.0),
+		SecondaryResetAfterSeconds: new(10000),
 		// No window_minutes
 	}
 

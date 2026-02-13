@@ -1055,8 +1055,7 @@ func (s *CRSSyncService) mapOrCreateProxy(ctx context.Context, enabled bool, cac
 			p.Port == port &&
 			p.Username == username &&
 			p.Password == password {
-			id := p.ID
-			return &id, nil
+			return new(p.ID), nil
 		}
 	}
 
@@ -1075,8 +1074,7 @@ func (s *CRSSyncService) mapOrCreateProxy(ctx context.Context, enabled bool, cac
 	}
 
 	*cached = append(*cached, *proxy)
-	id := proxy.ID
-	return &id, nil
+	return new(proxy.ID), nil
 }
 
 func defaultProxyName(base, protocol, host string, port int) string {

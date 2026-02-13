@@ -118,12 +118,10 @@ func (h *AnnouncementHandler) Create(c *gin.Context) {
 	}
 
 	if req.StartsAt != nil && *req.StartsAt > 0 {
-		t := time.Unix(*req.StartsAt, 0)
-		input.StartsAt = &t
+		input.StartsAt = new(time.Unix(*req.StartsAt, 0))
 	}
 	if req.EndsAt != nil && *req.EndsAt > 0 {
-		t := time.Unix(*req.EndsAt, 0)
-		input.EndsAt = &t
+		input.EndsAt = new(time.Unix(*req.EndsAt, 0))
 	}
 
 	created, err := h.announcementService.Create(c.Request.Context(), input)
@@ -169,8 +167,7 @@ func (h *AnnouncementHandler) Update(c *gin.Context) {
 			var cleared *time.Time = nil
 			input.StartsAt = &cleared
 		} else {
-			t := time.Unix(*req.StartsAt, 0)
-			ptr := &t
+			ptr := new(time.Unix(*req.StartsAt, 0))
 			input.StartsAt = &ptr
 		}
 	}
@@ -180,8 +177,7 @@ func (h *AnnouncementHandler) Update(c *gin.Context) {
 			var cleared *time.Time = nil
 			input.EndsAt = &cleared
 		} else {
-			t := time.Unix(*req.EndsAt, 0)
-			ptr := &t
+			ptr := new(time.Unix(*req.EndsAt, 0))
 			input.EndsAt = &ptr
 		}
 	}

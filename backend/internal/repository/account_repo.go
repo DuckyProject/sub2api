@@ -1370,8 +1370,7 @@ func (r *accountRepository) loadTempUnschedStates(ctx context.Context, accountID
 		}
 		var untilPtr *time.Time
 		if until.Valid {
-			tmp := until.Time
-			untilPtr = &tmp
+			untilPtr = new(until.Time)
 		}
 		if reason.Valid {
 			out[id] = tempUnschedSnapshot{until: untilPtr, reason: reason.String}
@@ -1494,8 +1493,6 @@ func accountEntityToService(m *dbent.Account) *service.Account {
 		return nil
 	}
 
-	rateMultiplier := m.RateMultiplier
-
 	return &service.Account{
 		ID:                  m.ID,
 		Name:                m.Name,
@@ -1507,7 +1504,7 @@ func accountEntityToService(m *dbent.Account) *service.Account {
 		ProxyID:             m.ProxyID,
 		Concurrency:         m.Concurrency,
 		Priority:            m.Priority,
-		RateMultiplier:      &rateMultiplier,
+		RateMultiplier:      new(m.RateMultiplier),
 		Status:              m.Status,
 		ErrorMessage:        derefString(m.ErrorMessage),
 		LastUsedAt:          m.LastUsedAt,

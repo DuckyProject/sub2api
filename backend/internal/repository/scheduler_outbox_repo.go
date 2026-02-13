@@ -46,12 +46,10 @@ func (r *schedulerOutboxRepository) ListAfter(ctx context.Context, afterID int64
 			return nil, err
 		}
 		if accountID.Valid {
-			v := accountID.Int64
-			event.AccountID = &v
+			event.AccountID = new(accountID.Int64)
 		}
 		if groupID.Valid {
-			v := groupID.Int64
-			event.GroupID = &v
+			event.GroupID = new(groupID.Int64)
 		}
 		if len(payloadRaw) > 0 {
 			var payload map[string]any

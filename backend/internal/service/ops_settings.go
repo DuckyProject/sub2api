@@ -483,15 +483,11 @@ func (s *OpsService) UpdateOpsAdvancedSettings(ctx context.Context, cfg *OpsAdva
 const SettingKeyOpsMetricThresholds = "ops_metric_thresholds"
 
 func defaultOpsMetricThresholds() *OpsMetricThresholds {
-	slaMin := 99.5
-	ttftMax := 500.0
-	reqErrMax := 5.0
-	upstreamErrMax := 5.0
 	return &OpsMetricThresholds{
-		SLAPercentMin:               &slaMin,
-		TTFTp99MsMax:                &ttftMax,
-		RequestErrorRatePercentMax:  &reqErrMax,
-		UpstreamErrorRatePercentMax: &upstreamErrMax,
+		SLAPercentMin:               new(99.5),
+		TTFTp99MsMax:                new(500.0),
+		RequestErrorRatePercentMax:  new(5.0),
+		UpstreamErrorRatePercentMax: new(5.0),
 	}
 }
 

@@ -435,8 +435,7 @@ func (h *OpsHandler) UpdateAlertEventStatus(c *gin.Context) {
 
 	var resolvedAt *time.Time
 	if payload.Status == service.OpsAlertStatusResolved || payload.Status == service.OpsAlertStatusManualResolved {
-		now := time.Now().UTC()
-		resolvedAt = &now
+		resolvedAt = new(time.Now().UTC())
 	}
 	if err := h.opsService.UpdateAlertEventStatus(c.Request.Context(), id, payload.Status, resolvedAt); err != nil {
 		response.ErrorFrom(c, err)
@@ -479,8 +478,7 @@ func (h *OpsHandler) CreateAlertSilence(c *gin.Context) {
 
 	createdBy := (*int64)(nil)
 	if subject, ok := middleware.GetAuthSubjectFromContext(c); ok {
-		uid := subject.UserID
-		createdBy = &uid
+		createdBy = new(subject.UserID)
 	}
 
 	silence := &service.OpsAlertSilence{
@@ -531,11 +529,9 @@ func (h *OpsHandler) ListAlertEvents(c *gin.Context) {
 		vv := strings.ToLower(v)
 		switch vv {
 		case "true", "1":
-			b := true
-			filter.EmailSent = &b
+			filter.EmailSent = new(true)
 		case "false", "0":
-			b := false
-			filter.EmailSent = &b
+			filter.EmailSent = new(false)
 		default:
 			response.BadRequest(c, "Invalid email_sent")
 			return

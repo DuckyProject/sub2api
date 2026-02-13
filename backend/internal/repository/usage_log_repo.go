@@ -2265,20 +2265,16 @@ func scanUsageLog(scanner interface{ Scan(...any) error }) (*service.UsageLog, e
 		log.RequestID = requestID.String
 	}
 	if groupID.Valid {
-		value := groupID.Int64
-		log.GroupID = &value
+		log.GroupID = new(groupID.Int64)
 	}
 	if subscriptionID.Valid {
-		value := subscriptionID.Int64
-		log.SubscriptionID = &value
+		log.SubscriptionID = new(subscriptionID.Int64)
 	}
 	if durationMs.Valid {
-		value := int(durationMs.Int64)
-		log.DurationMs = &value
+		log.DurationMs = new(int(durationMs.Int64))
 	}
 	if firstTokenMs.Valid {
-		value := int(firstTokenMs.Int64)
-		log.FirstTokenMs = &value
+		log.FirstTokenMs = new(int(firstTokenMs.Int64))
 	}
 	if userAgent.Valid {
 		log.UserAgent = &userAgent.String
@@ -2368,8 +2364,7 @@ func nullFloat64Ptr(v sql.NullFloat64) *float64 {
 	if !v.Valid {
 		return nil
 	}
-	out := v.Float64
-	return &out
+	return new(v.Float64)
 }
 
 func nullString(v *string) sql.NullString {

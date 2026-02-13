@@ -249,8 +249,7 @@ func (s *AnnouncementService) ListForUser(ctx context.Context, userID int64, unr
 		}
 		var ptr *time.Time
 		if ok {
-			t := readAt
-			ptr = &t
+			ptr = new(readAt)
 		}
 		out = append(out, UserAnnouncement{
 			Announcement: a,
@@ -351,8 +350,7 @@ func (s *AnnouncementService) ListUserReadStatus(
 		readAt, ok := readMap[u.ID]
 		var ptr *time.Time
 		if ok {
-			t := readAt
-			ptr = &t
+			ptr = new(readAt)
 		}
 
 		out = append(out, AnnouncementUserReadStatus{

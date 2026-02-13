@@ -75,24 +75,21 @@ func (s *UserSubscription) DailyResetTime() *time.Time {
 	if s.DailyWindowStart == nil {
 		return nil
 	}
-	t := s.DailyWindowStart.Add(24 * time.Hour)
-	return &t
+	return new(s.DailyWindowStart.Add(24 * time.Hour))
 }
 
 func (s *UserSubscription) WeeklyResetTime() *time.Time {
 	if s.WeeklyWindowStart == nil {
 		return nil
 	}
-	t := s.WeeklyWindowStart.Add(7 * 24 * time.Hour)
-	return &t
+	return new(s.WeeklyWindowStart.Add(7 * 24 * time.Hour))
 }
 
 func (s *UserSubscription) MonthlyResetTime() *time.Time {
 	if s.MonthlyWindowStart == nil {
 		return nil
 	}
-	t := s.MonthlyWindowStart.Add(30 * 24 * time.Hour)
-	return &t
+	return new(s.MonthlyWindowStart.Add(30 * 24 * time.Hour))
 }
 
 func (s *UserSubscription) CheckDailyLimit(group *Group, additionalCost float64) bool {

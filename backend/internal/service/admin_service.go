@@ -468,8 +468,7 @@ func (s *adminServiceImpl) UpdateUser(ctx context.Context, id int64, input *Upda
 			Status: StatusUsed,
 			UsedBy: &user.ID,
 		}
-		now := time.Now()
-		adjustmentRecord.UsedAt = &now
+		adjustmentRecord.UsedAt = new(time.Now())
 		if err := s.redeemCodeRepo.Create(ctx, adjustmentRecord); err != nil {
 			log.Printf("failed to create concurrency adjustment redeem code: %v", err)
 		}
@@ -551,8 +550,7 @@ func (s *adminServiceImpl) UpdateUserBalance(ctx context.Context, userID int64, 
 			UsedBy: &user.ID,
 			Notes:  notes,
 		}
-		now := time.Now()
-		adjustmentRecord.UsedAt = &now
+		adjustmentRecord.UsedAt = new(time.Now())
 
 		if err := s.redeemCodeRepo.Create(ctx, adjustmentRecord); err != nil {
 			log.Printf("failed to create balance adjustment redeem code: %v", err)
@@ -1085,8 +1083,7 @@ func (s *adminServiceImpl) CreateAccount(ctx context.Context, input *CreateAccou
 		Schedulable: true,
 	}
 	if input.ExpiresAt != nil && *input.ExpiresAt > 0 {
-		expiresAt := time.Unix(*input.ExpiresAt, 0)
-		account.ExpiresAt = &expiresAt
+		account.ExpiresAt = new(time.Unix(*input.ExpiresAt, 0))
 	}
 	if input.AutoPauseOnExpired != nil {
 		account.AutoPauseOnExpired = *input.AutoPauseOnExpired
@@ -1164,8 +1161,7 @@ func (s *adminServiceImpl) UpdateAccount(ctx context.Context, id int64, input *U
 		if *input.ExpiresAt <= 0 {
 			account.ExpiresAt = nil
 		} else {
-			expiresAt := time.Unix(*input.ExpiresAt, 0)
-			account.ExpiresAt = &expiresAt
+			account.ExpiresAt = new(time.Unix(*input.ExpiresAt, 0))
 		}
 	}
 	if input.AutoPauseOnExpired != nil {
@@ -1605,10 +1601,9 @@ func (s *adminServiceImpl) TestProxy(ctx context.Context, id int64) (*ProxyTestR
 		}, nil
 	}
 
-	latency := latencyMs
 	s.saveProxyLatency(ctx, id, &ProxyLatencyInfo{
 		Success:     true,
-		LatencyMs:   &latency,
+		LatencyMs:   new(latencyMs),
 		Message:     "Proxy is accessible",
 		IPAddress:   exitInfo.IP,
 		Country:     exitInfo.Country,
@@ -1643,10 +1638,9 @@ func (s *adminServiceImpl) probeProxyLatency(ctx context.Context, proxy *Proxy) 
 		return
 	}
 
-	latency := latencyMs
 	s.saveProxyLatency(ctx, proxy.ID, &ProxyLatencyInfo{
 		Success:     true,
-		LatencyMs:   &latency,
+		LatencyMs:   new(latencyMs),
 		Message:     "Proxy is accessible",
 		IPAddress:   exitInfo.IP,
 		Country:     exitInfo.Country,

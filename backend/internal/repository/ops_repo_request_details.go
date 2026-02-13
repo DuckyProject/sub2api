@@ -193,15 +193,13 @@ LIMIT $%d OFFSET $%d
 		if !v.Valid {
 			return nil
 		}
-		i := int(v.Int64)
-		return &i
+		return new(int(v.Int64))
 	}
 	toInt64Ptr := func(v sql.NullInt64) *int64 {
 		if !v.Valid {
 			return nil
 		}
-		i := v.Int64
-		return &i
+		return new(v.Int64)
 	}
 
 	out := make([]*service.OpsRequestDetail, 0, pageSize)

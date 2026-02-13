@@ -235,8 +235,7 @@ func (s *OpsService) RecordError(ctx context.Context, entry *OpsInsertErrorLogIn
 				continue
 			}
 
-			evCopy := out
-			sanitized = append(sanitized, &evCopy)
+			sanitized = append(sanitized, new(out))
 		}
 
 		entry.UpstreamErrorsJSON = marshalOpsUpstreamErrors(sanitized)

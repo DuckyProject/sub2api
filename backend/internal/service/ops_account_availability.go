@@ -39,8 +39,6 @@ func (s *OpsService) GetAccountAvailabilityStats(ctx context.Context, platformFi
 	}
 
 	now := time.Now()
-	collectedAt := now
-
 	platform := make(map[string]*PlatformAvailability)
 	group := make(map[int64]*GroupAvailability)
 	account := make(map[int64]*AccountAvailability)
@@ -154,7 +152,7 @@ func (s *OpsService) GetAccountAvailabilityStats(ctx context.Context, platformFi
 		account[acc.ID] = item
 	}
 
-	return platform, group, account, &collectedAt, nil
+	return platform, group, account, new(now), nil
 }
 
 type OpsAccountAvailability struct {
