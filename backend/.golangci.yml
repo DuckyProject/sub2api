@@ -75,10 +75,6 @@ linters:
       # Default: false
       check-escaping-errors: true
     staticcheck:
-      # https://staticcheck.dev/docs/configuration/options/#dot_import_whitelist
-      # Default: ["github.com/mmcloughlin/avo/build", "github.com/mmcloughlin/avo/operand", "github.com/mmcloughlin/avo/reg"]
-      dot-import-whitelist:
-        - fmt
       # https://staticcheck.dev/docs/configuration/options/#initialisms
       # Default: ["ACL", "API", "ASCII", "CPU", "CSS", "DNS", "EOF", "GUID", "HTML", "HTTP", "HTTPS", "ID", "IP", "JSON", "QPS", "RAM", "RPC", "SLA", "SMTP", "SQL", "SSH", "TCP", "TLS", "TTL", "UDP", "UI", "GID", "UID", "UUID", "URI", "URL", "UTF8", "VM", "XML", "XMPP", "XSRF", "XSS", "SIP", "RTP", "AMQP", "DB", "TS"]
       initialisms: [ "ACL", "API", "ASCII", "CPU", "CSS", "DNS", "EOF", "GUID", "HTML", "HTTP", "HTTPS", "ID", "IP", "JSON", "QPS", "RAM", "RPC", "SLA", "SMTP", "SQL", "SSH", "TCP", "TLS", "TTL", "UDP", "UI", "GID", "UID", "UUID", "URI", "URL", "UTF8", "VM", "XML", "XMPP", "XSRF", "XSS", "SIP", "RTP", "AMQP", "DB", "TS" ]
@@ -94,6 +90,7 @@ linters:
         - all
         - -ST1000  # Package comment format
         - -ST1003  # Poorly chosen identifier (ApiKey vs APIKey)
+        - -ST1016  # Methods on the same type should have the same receiver name
         - -ST1020  # Comment on exported method format
         - -ST1021  # Comment on exported type format
         - -ST1022  # Comment on exported variable format
@@ -256,7 +253,8 @@ linters:
         - SA4016
         # Discarding the return values of a function without side effects, making the call pointless.
         # https://staticcheck.dev/docs/checks/#SA4017
-        - SA4017
+        # Go 1.26 的 new(value) 语法会触发 staticcheck 的误报（SA4017），先临时关闭。
+        - -SA4017
         # Self-assignment of variables.
         # https://staticcheck.dev/docs/checks/#SA4018
         - SA4018
