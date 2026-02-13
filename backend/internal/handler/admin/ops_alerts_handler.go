@@ -478,7 +478,8 @@ func (h *OpsHandler) CreateAlertSilence(c *gin.Context) {
 
 	createdBy := (*int64)(nil)
 	if subject, ok := middleware.GetAuthSubjectFromContext(c); ok {
-		createdBy = new(subject.UserID)
+		uid := subject.UserID
+		createdBy = &uid
 	}
 
 	silence := &service.OpsAlertSilence{

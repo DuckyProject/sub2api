@@ -227,7 +227,8 @@ func (h *DashboardHandler) GetUsageTrend(c *gin.Context) {
 	}
 	if billingTypeStr := c.Query("billing_type"); billingTypeStr != "" {
 		if v, err := strconv.ParseInt(billingTypeStr, 10, 8); err == nil {
-			billingType = new(int8(v))
+			bt := int8(v)
+			billingType = &bt
 		} else {
 			response.BadRequest(c, "Invalid billing_type")
 			return
@@ -286,7 +287,8 @@ func (h *DashboardHandler) GetModelStats(c *gin.Context) {
 	}
 	if billingTypeStr := c.Query("billing_type"); billingTypeStr != "" {
 		if v, err := strconv.ParseInt(billingTypeStr, 10, 8); err == nil {
-			billingType = new(int8(v))
+			bt := int8(v)
+			billingType = &bt
 		} else {
 			response.BadRequest(c, "Invalid billing_type")
 			return

@@ -206,6 +206,7 @@ func (c *stubGatewayCache) DeleteSessionAccountID(ctx context.Context, groupID i
 
 func TestOpenAISelectAccountWithLoadAwareness_FiltersUnschedulable(t *testing.T) {
 	now := time.Now()
+	resetAt := now.Add(10 * time.Minute)
 	rateLimited := Account{
 		ID:               1,
 		Platform:         PlatformOpenAI,
@@ -214,7 +215,7 @@ func TestOpenAISelectAccountWithLoadAwareness_FiltersUnschedulable(t *testing.T)
 		Schedulable:      true,
 		Concurrency:      1,
 		Priority:         0,
-		RateLimitResetAt: new(now.Add(10 * time.Minute)),
+		RateLimitResetAt: &resetAt,
 	}
 	available := Account{
 		ID:          2,
@@ -248,6 +249,7 @@ func TestOpenAISelectAccountWithLoadAwareness_FiltersUnschedulable(t *testing.T)
 
 func TestOpenAISelectAccountWithLoadAwareness_FiltersUnschedulableWhenNoConcurrencyService(t *testing.T) {
 	now := time.Now()
+	resetAt := now.Add(10 * time.Minute)
 	rateLimited := Account{
 		ID:               1,
 		Platform:         PlatformOpenAI,
@@ -256,7 +258,7 @@ func TestOpenAISelectAccountWithLoadAwareness_FiltersUnschedulableWhenNoConcurre
 		Schedulable:      true,
 		Concurrency:      1,
 		Priority:         0,
-		RateLimitResetAt: new(now.Add(10 * time.Minute)),
+		RateLimitResetAt: &resetAt,
 	}
 	available := Account{
 		ID:          2,

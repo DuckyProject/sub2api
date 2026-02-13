@@ -82,7 +82,8 @@ func (h *UsageHandler) List(c *gin.Context) {
 			response.BadRequest(c, "Invalid billing_type")
 			return
 		}
-		billingType = new(int8(val))
+		bt := int8(val)
+		billingType = &bt
 	}
 
 	// Parse date range

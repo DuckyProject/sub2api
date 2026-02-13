@@ -525,7 +525,8 @@ func parseOpenAIRateLimitResetTime(body []byte) *int64 {
 
 	// 优先使用 resets_at（Unix 时间戳）
 	if resetsAt, ok := errObj["resets_at"].(float64); ok {
-		return new(int64(resetsAt))
+		ts := int64(resetsAt)
+		return &ts
 	}
 	if resetsAt, ok := errObj["resets_at"].(string); ok {
 		if ts, err := strconv.ParseInt(resetsAt, 10, 64); err == nil {
@@ -535,11 +536,13 @@ func parseOpenAIRateLimitResetTime(body []byte) *int64 {
 
 	// 如果没有 resets_at，尝试使用 resets_in_seconds
 	if resetsInSeconds, ok := errObj["resets_in_seconds"].(float64); ok {
-		return new(time.Now().Unix() + int64(resetsInSeconds))
+		ts := time.Now().Unix() + int64(resetsInSeconds)
+		return &ts
 	}
 	if resetsInSeconds, ok := errObj["resets_in_seconds"].(string); ok {
 		if sec, err := strconv.ParseInt(resetsInSeconds, 10, 64); err == nil {
-			return new(time.Now().Unix() + sec)
+			ts := time.Now().Unix() + sec
+			return &ts
 		}
 	}
 
