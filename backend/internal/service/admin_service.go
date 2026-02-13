@@ -1601,10 +1601,9 @@ func (s *adminServiceImpl) TestProxy(ctx context.Context, id int64) (*ProxyTestR
 		}, nil
 	}
 
-	lm := latencyMs
 	s.saveProxyLatency(ctx, id, &ProxyLatencyInfo{
 		Success:     true,
-		LatencyMs:   &lm,
+		LatencyMs:   new(latencyMs),
 		Message:     "Proxy is accessible",
 		IPAddress:   exitInfo.IP,
 		Country:     exitInfo.Country,
@@ -1639,10 +1638,9 @@ func (s *adminServiceImpl) probeProxyLatency(ctx context.Context, proxy *Proxy) 
 		return
 	}
 
-	lm := latencyMs
 	s.saveProxyLatency(ctx, proxy.ID, &ProxyLatencyInfo{
 		Success:     true,
-		LatencyMs:   &lm,
+		LatencyMs:   new(latencyMs),
 		Message:     "Proxy is accessible",
 		IPAddress:   exitInfo.IP,
 		Country:     exitInfo.Country,

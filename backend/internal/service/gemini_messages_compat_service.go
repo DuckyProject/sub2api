@@ -2766,8 +2766,7 @@ func ParseGeminiRateLimitResetTime(body []byte) *int64 {
 							if dur, err := time.ParseDuration(v); err == nil {
 								// Use ceil to avoid undercounting fractional seconds (e.g. 10.1s should not become 10s),
 								// which can affect scheduling decisions around thresholds (like 10s).
-								ts := time.Now().Unix() + int64(math.Ceil(dur.Seconds()))
-								return &ts
+								return new(time.Now().Unix() + int64(math.Ceil(dur.Seconds())))
 							}
 						}
 					}
@@ -2780,8 +2779,7 @@ func ParseGeminiRateLimitResetTime(body []byte) *int64 {
 	matches := retryInRegex.FindStringSubmatch(string(body))
 	if len(matches) == 2 {
 		if dur, err := time.ParseDuration(matches[1] + "s"); err == nil {
-			ts := time.Now().Unix() + int64(math.Ceil(dur.Seconds()))
-			return &ts
+			return new(time.Now().Unix() + int64(math.Ceil(dur.Seconds())))
 		}
 	}
 
@@ -2797,8 +2795,8 @@ func looksLikeGeminiDailyQuota(message string) bool {
 }
 
 func nextGeminiDailyResetUnix() *int64 {
-	ts := geminiDailyResetTime(time.Now()).Unix()
-	return &ts
+	reset := geminiDailyResetTime(time.Now())
+	return new(reset.Unix())
 }
 
 func ensureGeminiFunctionCallThoughtSignatures(body []byte) []byte {

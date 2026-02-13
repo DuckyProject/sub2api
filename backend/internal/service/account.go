@@ -194,8 +194,7 @@ func (a *Account) GetCredentialAsTime(key string) *time.Time {
 	}
 	// 尝试 Unix 时间戳（纯数字字符串）
 	if ts, err := strconv.ParseInt(s, 10, 64); err == nil {
-		t := time.Unix(ts, 0)
-		return &t
+		return new(time.Unix(ts, 0))
 	}
 	return nil
 }

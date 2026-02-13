@@ -418,8 +418,7 @@ func (c *OpsMetricsCollector) collectConcurrencyQueueDepth(parentCtx context.Con
 	if total > maxInt {
 		total = maxInt
 	}
-	v := int(total)
-	return &v
+	return new(int(total))
 }
 
 type opsCollectedPercentiles struct {
@@ -591,13 +590,10 @@ func (c *OpsMetricsCollector) collectSystemStats(ctx context.Context) (*opsColle
 
 	cgroupUsed, cgroupTotal, cgroupOK := readCgroupMemoryBytes()
 	if cgroupOK {
-		usedMB := int64(cgroupUsed / bytesPerMB)
-		out.memoryUsedMB = &usedMB
+		out.memoryUsedMB = new(int64(cgroupUsed / bytesPerMB))
 		if cgroupTotal > 0 {
-			totalMB := int64(cgroupTotal / bytesPerMB)
-			out.memoryTotalMB = &totalMB
-			usagePct := roundTo1DP(float64(cgroupUsed) / float64(cgroupTotal) * 100)
-			out.memoryUsagePercent = &usagePct
+			out.memoryTotalMB = new(int64(cgroupTotal / bytesPerMB))
+			out.memoryUsagePercent = new(roundTo1DP(float64(cgroupUsed) / float64(cgroupTotal) * 100))
 		}
 	}
 

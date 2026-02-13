@@ -117,8 +117,7 @@ func (h *UsageHandler) List(c *gin.Context) {
 			response.BadRequest(c, "Invalid billing_type")
 			return
 		}
-		bt := int8(val)
-		billingType = &bt
+		billingType = new(int8(val))
 	}
 
 	// Parse date range
@@ -230,8 +229,7 @@ func (h *UsageHandler) Stats(c *gin.Context) {
 			response.BadRequest(c, "Invalid billing_type")
 			return
 		}
-		bt := int8(val)
-		billingType = &bt
+		billingType = new(int8(val))
 	}
 
 	// Parse date range

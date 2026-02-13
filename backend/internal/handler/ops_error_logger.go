@@ -745,8 +745,7 @@ func extractOpsRetryRequestHeaders(c *gin.Context) *string {
 	if err != nil {
 		return nil
 	}
-	s := string(raw)
-	return &s
+	return new(string(raw))
 }
 
 type parsedOpsError struct {
